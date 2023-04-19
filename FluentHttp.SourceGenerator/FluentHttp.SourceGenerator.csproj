@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<!--<IncludeBuildOutput>false</IncludeBuildOutput>-->
+		<!--<DevelopmentDependency>true</DevelopmentDependency>
+	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<EnablePackageValidation>true</EnablePackageValidation>-->
+		<LangVersion>10</LangVersion>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<version>0.0.1</version>
+		<Description>http、source generator、roslyn、LoadBalancing</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="bin\**" />
+		<EmbeddedResource Remove="bin\**" />
+		<None Remove="bin\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.5.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<!--<None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />-->
+		<None Remove="bin\Debug\netstandard2.0\\FluentDapr.dll" />
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+	</ItemGroup>
+</Project>

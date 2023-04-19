@@ -1,0 +1,12 @@
+.vs
+bin
+obj
+TestResults
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.sonarqube

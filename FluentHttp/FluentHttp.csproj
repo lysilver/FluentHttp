@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+	    <LangVersion>10</LangVersion>
+      <version>0.0.1</version>
+      <Description>http、source generator、roslyn、LoadBalancing</Description>
+      <AssemblyName>Y.FluentHttp</AssemblyName>
+      <RootNamespace>FluentHttp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FluentHttp.Abstractions\FluentHttp.Abstractions.csproj" />
+    <ProjectReference Include="..\FluentHttp.Ext\FluentHttp.Ext.csproj" />
+  </ItemGroup>
+</Project>

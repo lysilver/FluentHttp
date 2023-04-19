@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "FluentDapr.Abstractions": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:40625;http://localhost:40784"
+    }
+  }
+}

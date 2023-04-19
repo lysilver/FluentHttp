@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+	<!--<CompilerGeneratedFilesOutputPath>generated</CompilerGeneratedFilesOutputPath>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FluentHttp.SourceGenerator\FluentHttp.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\FluentHttp\FluentHttp.csproj" />
+  </ItemGroup>
+  <!--<ItemGroup>
+  	--><!-- Exclude the output of source generators from the compilation --><!--
+  	<Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.g.cs" />
+  </ItemGroup>-->
+</Project>
