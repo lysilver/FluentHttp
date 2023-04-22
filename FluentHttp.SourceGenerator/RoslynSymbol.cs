@@ -42,6 +42,11 @@ namespace FluentHttp.SourceGenerator
             get; set;
         }
 
+        public string AppId
+        {
+            get; set;
+        }
+
         /// <summary>
         /// 接口信息
         /// </summary>

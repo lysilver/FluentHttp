@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FluentHttp.Test;
 
-[FluentHttp(Name = "OrderConsumer", Auth = "jwt")]
+[FluentHttp(AppId = "order", Name = "OrderConsumer", Auth = "jwt")]
 public interface IOrderConsumer
 {
     /// <summary>
@@ -14,6 +14,14 @@ public interface IOrderConsumer
     /// <returns></returns>
     [HttpGet(AppId = "order", Url = "api/v1/order/all")]
     Task<IEnumerable<Order>> GetOrders();
+
+    /// <summary>
+    /// 获取所有订单
+    /// 接口上的AppId优先级低于方法上的
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet(Url = "api/v1/order/all")]
+    Task<IEnumerable<Order>> GetAllOrders();
 
     /// <summary>
     /// 根据id获取订单

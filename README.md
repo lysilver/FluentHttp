@@ -4,12 +4,6 @@ http调用、支持随机、轮询、加权随机负载均衡
 
 服务健康需要自行实现IContext 动态改变url配置
 
-## 引入包
-
-Y.FluentHttp
-
-FluentHttp.SourceGenerator
-
 ## 使用方式
 
 DI注入
@@ -88,7 +82,7 @@ services.TryAddSingleton<IContext, CustContext>();
 - ReturnString - 返回string 类型
 
 ```csharp
-[FluentHttp(Name = "OrderConsumer", Auth = "jwt")]
+[FluentHttp(AppId = "order", Name = "OrderConsumer", Auth = "jwt")]
 public interface IOrderConsumer
 {
     /// <summary>
@@ -97,6 +91,14 @@ public interface IOrderConsumer
     /// <returns></returns>
     [HttpGet(AppId = "order", Url = "api/v1/order/all")]
     Task<IEnumerable<Order>> GetOrders();
+
+    /// <summary>
+    /// 获取所有订单
+    /// 接口上的AppId优先级低于方法上的
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet(Url = "api/v1/order/all")]
+    Task<IEnumerable<Order>> GetAllOrders();
 
     /// <summary>
     /// 根据id获取订单

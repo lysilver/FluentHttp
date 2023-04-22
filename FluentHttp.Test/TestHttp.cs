@@ -69,6 +69,13 @@ namespace FluentHttp.Test
         }
 
         [Fact]
+        public async Task TestGetAll_2()
+        {
+            var res = await orderConsumer.GetAllOrders();
+            Assert.Equal(5, res.Count());
+        }
+
+        [Fact]
         public async Task TestPost()
         {
             var order = new Order

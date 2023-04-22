@@ -62,7 +62,9 @@ namespace FluentHttp.SourceGenerator
                 // 获取接口上的特性数据
                 metaData.TryGetValue(DaprConst.Name, out string className);
                 metaData.TryGetValue(DaprConst.Auth, out string auth);
+                metaData.TryGetValue(DaprConst.AppId, out string appId);
                 roslynSymbol.Auth = auth;
+                roslynSymbol.AppId = appId;
                 roslynSymbol.ImplClassName = string.IsNullOrWhiteSpace(className) ? roslynSymbol.InterfaceName.Substring(1) : className;
                 var sourceText = new SourceTextBuild()
                     .WithUsingNameSpaces(roslynSymbol.GetUsings)
@@ -190,6 +192,10 @@ _chooseUrl = chooseUrl;
             attributeDict.TryGetValue(DaprConst.Url, out var url);
             attributeDict.TryGetValue(DaprConst.AppId, out var appId);
             attributeDict.TryGetValue(DaprConst.ReturnString, out var returnString);
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                appId = roslynSymbol.AppId;
+            }
             string url2 = "";
             string url3 = "";
             Dictionary<string, object> query = new Dictionary<string, object>();

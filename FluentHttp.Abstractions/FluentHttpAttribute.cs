@@ -8,6 +8,8 @@ namespace FluentHttp.Abstractions
     [AttributeUsage(AttributeTargets.Interface)]
     public class FluentHttpAttribute : Attribute
     {
+        public string AppId { get; set; }
+
         /// <summary>
         /// 实现的类名
         /// 为空 ITest => Test
