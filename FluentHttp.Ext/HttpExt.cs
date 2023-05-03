@@ -1,5 +1,4 @@
 ﻿using FluentHttp.Ext.LoadBalancing;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -232,6 +231,30 @@ namespace FluentHttp.Ext
                 case "POST":
                 case "PUT":
                     httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
+                    break;
+
+                default:
+                    break;
+            }
+            var res = await client.SendAsync(httpRequest);
+            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+        }
+
+        public static async Task<TResponse?> Http<TResponse, TRequest>(this HttpClient client, IContext context,
+            HttpRequestValues<TRequest> requestValues)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(client));
+            CreateHeader(client, requestValues.Header, requestValues.Auth);
+            HttpRequestMessage httpRequest = new()
+            {
+                RequestUri = new Uri(requestValues.Url),
+                Method = new HttpMethod(requestValues.Method)
+            };
+            switch (requestValues.Method)
+            {
+                case "POST":
+                case "PUT":
+                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(requestValues.Value, context.JsonSerializerOptions()));
                     break;
 
                 default:
