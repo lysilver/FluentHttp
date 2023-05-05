@@ -69,7 +69,7 @@ services.TryAddSingleton<IContext, CustContext>();
 
 #### GET POST DELETE PUT
 
-- [FluentHttp(Name = "OrderConsumer", Auth = "jwt")] Name-生成的类名 Auth- 验证的header取值
+- [FluentHttp(AppId = "order", Name = "OrderConsumer", Auth = "jwt")] Name-生成的类名 Auth- 验证的header取值
 - [HttpGet(AppId = "order", Url = "api/v1/order/all")]
 - [HttpPost(AppId = "order", Url = "api/v1/order/all")]
 - [HttpPut(AppId = "order", Url = "api/v1/order/all")]
@@ -174,6 +174,6 @@ public interface IOrderConsumer
 - [x] HttpPut
 - [x] HttpDelete
 - [x] HttpFileUpload
-- [x] 轮询
-- [x] 随机
-- [x] 加权随机
+- [x] 轮询(RoundRobin)
+- [x] 随机(Random)
+- [x] 加权随机(WeightedRandom)
