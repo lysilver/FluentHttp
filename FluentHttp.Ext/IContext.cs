@@ -18,12 +18,6 @@ namespace FluentHttp.Ext
         Task<Dictionary<string, object>> GetHeader(string appId);
 
         /// <summary>
-        /// url
-        /// </summary>
-        /// <returns></returns>
-        Task<Dictionary<string, ClusterConfig>?> GetUrls();
-
-        /// <summary>
         /// JsonSerializerOptions 请使用单例构建
         /// </summary>
         /// <returns></returns>

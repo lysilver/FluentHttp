@@ -2,22 +2,28 @@
 
 http调用、支持随机、轮询、加权随机负载均衡
 
-服务健康需要自行实现IContext 动态改变url配置
+服务健康需要自行实现IServiceDiscovery 动态改变url配置
 
 ## 使用方式
 
-DI注入
+- 引入dll
+
+Y.FluentHttp
+
+FluentHttp.SourceGenerator
+
+- DI注入
 
 ```csharp
 builder.Services.AddHttpClient();
 // builder.Services.AddHttpHeader();
-builder.Services.AddFluentHttp(ServiceLifetime.Scoped);
 // 负载均衡
 builder.Services.AddLoadBalancing();
+builder.Services.AddFluentHttp(ServiceLifetime.Scoped);
 
 ```
 
-实现IContext接口
+实现IContext接口 提供header信息 、json序列化
 
 ```csharp
 public class CustContext : IContext
@@ -31,24 +37,14 @@ public class CustContext : IContext
             return keys;
         };
 
-        private readonly string Node = "YL:FluentHttp";
-        private readonly IConfiguration _configuration;
-
-        public DefaultContext(IConfiguration configuration)
+        public DefaultContext()
         {
-            _configuration = configuration;
         }
 
         // 根据同步的id返回不同的header
         public Task<Dictionary<string, object>> GetHeader(string appId)
         {
             return Task.FromResult(func.Invoke());
-        }
-
-        public Task<Dictionary<string, ClusterConfig>?> GetUrls()
-        {
-            var services = _configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
-            return Task.FromResult(services);
         }
 
         public JsonSerializerOptions? JsonSerializerOptions()
@@ -58,11 +54,37 @@ public class CustContext : IContext
 
 ```
 
+实现IServiceDiscovery接口 提供url，默认的是从配置文件获取
+注入容器，必须在FluentHttp()之前 或者在之后使用services.Replace(ServiceDescriptor.Singleton(typeof(IServiceDiscovery), typeof(CustServiceDiscovery)));
+
+```csharp
+public class CustServiceDiscovery : IServiceDiscovery
+    {
+        private readonly string Node = "YL:FluentHttp";
+        private readonly IConfiguration _configuration;
+
+        public DefaultServiceDiscovery(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public Task<Dictionary<string, ClusterConfig>?> GetUrls()
+        {
+            var services = _configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
+            return Task.FromResult(services);
+        }
+    }
+
+```
+
 ```csharp
 // 如果添加了自行替换AddHttpHeader() 使用 
 services.Replace(ServiceDescriptor.Singleton(typeof(IContext), typeof(CustContext)));
 // 没有添加
 services.TryAddSingleton<IContext, CustContext>();
+// 放在 builder.Services.AddFluentHttp(ServiceLifetime.Scoped); 之前
+// 默认实现的是配置文件 配置文件参考
+services.TryAddSingleton<IServiceDiscovery, CustServiceDiscovery>();
 ```
 
 ### 支持请求

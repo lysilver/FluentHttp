@@ -1,4 +1,5 @@
 ﻿using FluentHttp.Ext.LoadBalancing;
+using System.Text.Json;
 
 namespace FluentHttp.Ext
 {
@@ -7,19 +8,64 @@ namespace FluentHttp.Ext
         private readonly IHttpClientFactory _clientFactory;
         private readonly IContext _context;
         private readonly IChooseUrl _chooseUrl;
+        private readonly IServiceDiscovery _serviceDiscovery;
 
-        public HttpClientAdapter(IHttpClientFactory clientFactory, IContext context, IChooseUrl chooseUrl)
+        public HttpClientAdapter(IHttpClientFactory clientFactory, IContext context, IChooseUrl chooseUrl,
+            IServiceDiscovery serviceDiscovery)
         {
             _clientFactory = clientFactory;
             _context = context;
             _chooseUrl = chooseUrl;
+            _serviceDiscovery = serviceDiscovery;
         }
 
-        public async Task<TResponse?> Http<TResponse, TRequest>(HttpRequestValues<TRequest> httpRequest)
+        public async Task<Dictionary<string, object>?> GetHeader(string appId)
         {
-            using var client = _clientFactory.CreateClient();
-            httpRequest.Url = HttpExt.GetUrl(_context, _chooseUrl, httpRequest.AppId, httpRequest.Url);
-            return await client.Http<TResponse, TRequest>(_context, httpRequest);
+            if (_context is null)
+            {
+                return null;
+            }
+            return await _context.GetHeader(appId);
+        }
+
+        public async Task<string> GetUrl(string appId, string url)
+        {
+            if (_serviceDiscovery is not null)
+            {
+                var services = await _serviceDiscovery.GetUrls();
+                if (services is null)
+                {
+                    return url;
+                }
+                if (services.TryGetValue(appId, out ClusterConfig? cluster) && cluster is not null)
+                {
+                    string? baseUrl;
+                    if (_chooseUrl is not null)
+                    {
+                        baseUrl = _chooseUrl.GetUrl(cluster);
+                    }
+                    else
+                    {
+                        baseUrl = cluster.Destinations.FirstOrDefault()?.BaseUrl;
+                    }
+                    // client.BaseAddress = new Uri(baseUrl);
+                    if (!string.IsNullOrWhiteSpace(baseUrl))
+                    {
+                        url = $"{baseUrl}/{url}";
+                    }
+                }
+            }
+            return url;
+        }
+
+        public Task<Dictionary<string, ClusterConfig>?> GetUrls()
+        {
+            return _serviceDiscovery.GetUrls();
+        }
+
+        public JsonSerializerOptions? JsonSerializerOptions()
+        {
+            return _context.JsonSerializerOptions();
         }
     }
 }

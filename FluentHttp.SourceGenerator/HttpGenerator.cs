@@ -64,7 +64,6 @@ namespace FluentHttp.SourceGenerator
                 metaData.TryGetValue(DaprConst.Auth, out string auth);
                 metaData.TryGetValue(DaprConst.AppId, out string appId);
                 metaData.TryGetValue(DaprConst.Url, out string url);
-
                 roslynSymbol.Auth = auth;
                 roslynSymbol.AppId = appId;
                 roslynSymbol.Url = url;
@@ -124,6 +123,7 @@ namespace FluentHttp.SourceGenerator
         {
             var di = string.Empty;
             List<string> usings = new List<string>();
+            //di += $"services.AddDefaultServiceDiscovery();" + DaprConst.NewLine;
             symbols.ForEach(roslynSymbol =>
             {
                 usings.AddRange(roslynSymbol.GetUsings);
@@ -139,6 +139,7 @@ namespace FluentHttp.SourceGenerator
             string code =
     $@"using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using YL.Extensions.DependencyInjection;
 using System;
 {us}
 namespace YL.Extensions.DependencyInjection
@@ -147,6 +148,7 @@ namespace YL.Extensions.DependencyInjection
     {{
         public static IServiceCollection AddFluentHttp(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         {{
+            services.AddDefaultServiceDiscovery();
             {di}
             return services;
         }}
@@ -169,8 +171,9 @@ namespace YL.Extensions.DependencyInjection
         private string GenConstruct()
         {
             string code = $@"private readonly IHttpClientFactory _clientFactory;";
-            code += DaprConst.NewLine + $@"private readonly IContext _context;";
-            code += DaprConst.NewLine + $@"private readonly IChooseUrl _chooseUrl;";
+            //code += DaprConst.NewLine + $@"private readonly IContext _context;";
+            //code += DaprConst.NewLine + $@"private readonly IChooseUrl _chooseUrl;";
+            code += DaprConst.NewLine + $@"private readonly IHttpClientAdapter _clientAdapter;";
             return code;
         }
 
@@ -180,6 +183,10 @@ namespace YL.Extensions.DependencyInjection
 _clientFactory = clientFactory;
 _context = context;
 _chooseUrl = chooseUrl;
+}}";
+            code = $@"public {name} (IHttpClientFactory clientFactory, IHttpClientAdapter clientAdapter) {{
+_clientFactory = clientFactory;
+_clientAdapter = clientAdapter;
 }}";
             return code;
         }
@@ -237,12 +244,13 @@ _chooseUrl = chooseUrl;
                 }
             }
 
-            var dapr = "var header = await _context.GetHeader(appId);" + DaprConst.NewLine;
+            var dapr = "var header = await _context?.GetHeader(appId);" + DaprConst.NewLine;
             //            dapr += $@"
             //if(header is not null){{
             //  header.Add(""Auth"", ""{roslynSymbol.Auth}"");
             //}}
             //";
+            dapr = "";
             var auth = roslynSymbol.Auth;
             var obj = parameter?.Name;
             if (bool.TryParse(returnString, out bool flag) && flag)
@@ -255,7 +263,7 @@ _chooseUrl = chooseUrl;
                 }
                 dapr += $@"var method = $""{method}"";";
                 dapr += DaprConst.NewLine;
-                dapr += $"var res = await client.Http{genericName}(_context, _chooseUrl, appId, url, {obj}, method, header, auth);";
+                dapr += $"var res = await client.Http{genericName}(_clientAdapter, appId, url, {obj}, method, auth);";
             }
             else
             {
@@ -263,32 +271,32 @@ _chooseUrl = chooseUrl;
                 {
                     //  IContext context, string appId, string url, Dictionary<string, object>? header = null
                     case "GET":
-                        dapr += $"var res = await client.HttpGet{genericName}(_context, _chooseUrl, appId, url, header, auth);";
+                        dapr += $"var res = await client.HttpGet{genericName}(_clientAdapter, appId, url, auth);";
                         break;
 
                     case "POST":
-                        dapr += $"var res = await client.HttpPost{genericName}(_context, _chooseUrl, appId, url, {obj}, header, auth);";
+                        dapr += $"var res = await client.HttpPost{genericName}(_clientAdapter, appId, url, {obj}, auth);";
                         break;
 
                     case "DELETE":
                         if (string.IsNullOrWhiteSpace(obj))
                         {
-                            dapr += $"var res = await client.HttpDelete{genericName}(_context, _chooseUrl, appId, url, header, auth);";
+                            dapr += $"var res = await client.HttpDelete{genericName}(_clientAdapter, appId, url, auth);";
                         }
                         else
                         {
-                            dapr += $"var res = await client.HttpDelete{genericName}(_context, _chooseUrl, appId, url, {obj}, header, auth);";
+                            dapr += $"var res = await client.HttpDelete{genericName}(_clientAdapter, appId, url, {obj}, auth);";
                         }
                         break;
 
                     case "HttpFileUpload":
                         var filepathParam = memberSymbol.Parameters.FirstOrDefault(c => c.IsFilePath);
                         var filepath = filepathParam.Name;
-                        dapr += $"var res = await client.UploadFile{genericName}(_context, _chooseUrl, appId, url, {filepath}, header, auth);";
+                        dapr += $"var res = await client.UploadFile{genericName}(_clientAdapter, appId, url, {filepath}, auth);";
                         break;
 
                     case "PUT":
-                        dapr += $"var res = await client.HttpPut{genericName}(_context, _chooseUrl, appId, url, {obj}, header, auth);";
+                        dapr += $"var res = await client.HttpPut{genericName}(_clientAdapter, appId, url, {obj}, auth);";
                         break;
 
                     default:

@@ -29,6 +29,22 @@ namespace YL.Extensions.DependencyInjection
             return services;
         }
 
+        public static IServiceCollection AddHttpAdapter(this IServiceCollection services)
+        {
+            services.TryAddSingleton<IHttpClientAdapter, HttpClientAdapter>();
+            return services;
+        }
+
+        public static IServiceCollection AddDefaultServiceDiscovery(this IServiceCollection services)
+        {
+            if (!services.Any(x => x.ServiceType == typeof(IServiceDiscovery)))
+            {
+                services.TryAddSingleton<IServiceDiscovery, DefaultServiceDiscovery>();
+            }
+            services.AddHttpAdapter();
+            return services;
+        }
+
         public static IServiceCollection AddFluentHttpPool(this IServiceCollection services)
         {
             services.AddSingleton(new HttpRequestValuesPool<object>(30));

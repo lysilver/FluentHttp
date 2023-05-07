@@ -1,5 +1,4 @@
-﻿using FluentHttp.Ext.LoadBalancing;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -7,36 +6,6 @@ namespace FluentHttp.Ext
 {
     public static class HttpExt
     {
-        public static string GetUrl(IContext context, IChooseUrl chooseUrl, string appId, string url)
-        {
-            if (context is not null)
-            {
-                var services = context.GetUrls().ConfigureAwait(false).GetAwaiter().GetResult();
-                if (services is null)
-                {
-                    return url;
-                }
-                if (services.TryGetValue(appId, out ClusterConfig? cluster) && cluster is not null)
-                {
-                    string? baseUrl;
-                    if (chooseUrl is not null)
-                    {
-                        baseUrl = chooseUrl.GetUrl(cluster);
-                    }
-                    else
-                    {
-                        baseUrl = cluster.Destinations.FirstOrDefault()?.BaseUrl;
-                    }
-                    // client.BaseAddress = new Uri(baseUrl);
-                    if (!string.IsNullOrWhiteSpace(baseUrl))
-                    {
-                        url = $"{baseUrl}/{url}";
-                    }
-                }
-            }
-            return url;
-        }
-
         private static void CreateHeader(HttpClient client, Dictionary<string, object>? header = null, string? auth = null)
         {
             if (client is not null && header is not null)
@@ -66,63 +35,62 @@ namespace FluentHttp.Ext
         }
 
         public static async Task<TResponse?> HttpGet<TResponse>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
-            return await client.GetFromJsonAsync<TResponse>(url, context.JsonSerializerOptions());
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
+            return await client.GetFromJsonAsync<TResponse>(url, clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> HttpPost<TResponse, TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.PostAsJsonAsync(url, data);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> HttpPut<TResponse, TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.PutAsJsonAsync(url, data);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> HttpDelete<TResponse, TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             HttpRequestMessage httpRequest = new()
             {
                 RequestUri = new Uri(url),
                 Method = HttpMethod.Delete,
-                Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()))
+                Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()))
             };
             var res = await client.SendAsync(httpRequest);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> HttpDelete<TResponse>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.DeleteAsync(url);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         /// <summary>
@@ -137,19 +105,19 @@ namespace FluentHttp.Ext
         /// <param name="header"></param>
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, string filePath,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, string filePath,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
             FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read);
             var fileName = Path.GetFileName(filePath);
             var scontent = new StreamContent(fileStream, (int)fileStream.Length);
             content.Add(scontent, "file", fileName);
             var res = await client.PostAsync(url, content);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         /// <summary>
@@ -164,12 +132,12 @@ namespace FluentHttp.Ext
         /// <param name="header"></param>
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, List<string> filePaths,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, List<string> filePaths,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
             foreach (var filePath in filePaths)
             {
@@ -179,16 +147,16 @@ namespace FluentHttp.Ext
                 content.Add(scontent, "files", fileName);
             }
             var res = await client.PostAsync(url, content);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, List<FileStream> streams,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, List<FileStream> streams,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
             foreach (var stream in streams)
             {
@@ -196,81 +164,30 @@ namespace FluentHttp.Ext
                 content.Add(scontent, "files", stream.Name);
             }
             var res = await client.PostAsync(url, content);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
-        public static Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, FileStream stream,
-            Dictionary<string, object>? header = null, string? auth = null)
+        public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
+            IHttpClientAdapter clientAdapter, string appId, string url, FileStream stream,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
             var scontent = new StreamContent(stream, (int)stream.Length);
             content.Add(scontent, "file", stream.Name);
             var res = client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
-            return res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
-        }
-
-        public static async Task<TResponse?> Http<TResponse, TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data, string method,
-            Dictionary<string, object>? header = null, string? auth = null)
-        {
-            ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
-            HttpRequestMessage httpRequest = new()
-            {
-                RequestUri = new Uri(url),
-                Method = new HttpMethod(method)
-            };
-            // httpRequest.Headers.Add("Accept", "application/json");
-            switch (method)
-            {
-                case "POST":
-                case "PUT":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
-                    break;
-
-                default:
-                    break;
-            }
-            var res = await client.SendAsync(httpRequest);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
-        }
-
-        public static async Task<TResponse?> Http<TResponse, TRequest>(this HttpClient client, IContext context,
-            HttpRequestValues<TRequest> requestValues)
-        {
-            ArgumentNullException.ThrowIfNull(nameof(client));
-            CreateHeader(client, requestValues.Header, requestValues.Auth);
-            HttpRequestMessage httpRequest = new()
-            {
-                RequestUri = new Uri(requestValues.Url),
-                Method = new HttpMethod(requestValues.Method)
-            };
-            switch (requestValues.Method)
-            {
-                case "POST":
-                case "PUT":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(requestValues.Value, context.JsonSerializerOptions()));
-                    break;
-
-                default:
-                    break;
-            }
-            var res = await client.SendAsync(httpRequest);
-            return await res.Content.ReadFromJsonAsync<TResponse>(context.JsonSerializerOptions());
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<string> Http<TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data, string method,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             HttpRequestMessage httpRequest = new()
             {
                 RequestUri = new Uri(url),
@@ -280,13 +197,13 @@ namespace FluentHttp.Ext
             {
                 case "POST":
                 case "PUT":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
+                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
                     break;
 
                 case "DELETE":
                     if (data is not null)
                     {
-                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
+                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
                     }
                     break;
 
@@ -298,12 +215,12 @@ namespace FluentHttp.Ext
         }
 
         public static async Task<Stream?> HttpStream<TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data, string method,
-            Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
+            string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             HttpRequestMessage httpRequest = new()
             {
                 RequestUri = new Uri(url),
@@ -313,13 +230,13 @@ namespace FluentHttp.Ext
             {
                 case "POST":
                 case "PUT":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
+                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
                     break;
 
                 case "DELETE":
                     if (data is not null)
                     {
-                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
+                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
                     }
                     break;
 
@@ -335,25 +252,25 @@ namespace FluentHttp.Ext
         }
 
         public static async Task DownloadRangeChunkAsync<TRequest>(this HttpClient client,
-            IContext context, IChooseUrl chooseUrl, string appId, string url, TRequest data, string method,
-            long fileSize, Dictionary<string, object>? header = null, string? auth = null)
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
+            long fileSize, string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(nameof(client));
-            url = GetUrl(context, chooseUrl, appId, url);
-            CreateHeader(client, header, auth);
+            url = await clientAdapter.GetUrl(appId, url);
+            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var bufferSize = 1024 * 1024;
             var tasks = new Task[(int)Math.Ceiling((double)fileSize / bufferSize)];
             for (var i = 0; i < tasks.Length; i++)
             {
                 var rangeStart = i * bufferSize;
                 var rangeEnd = Math.Min(rangeStart + bufferSize - 1, fileSize - 1);
-                tasks[i] = DownloadChunkAsync(client, context, url, data, method, rangeStart, rangeEnd, "fileName");
+                tasks[i] = DownloadChunkAsync(client, clientAdapter, url, data, method, rangeStart, rangeEnd, "fileName");
             }
             await Task.WhenAll(tasks);
         }
 
         private static async Task DownloadChunkAsync<TRequest>(HttpClient httpClient,
-            IContext context, string url, TRequest data, string method,
+            IHttpClientAdapter clientAdapter, string url, TRequest data, string method,
             long rangeStart, long rangeEnd, string fileName)
         {
             HttpRequestMessage httpRequest = new()
@@ -364,7 +281,7 @@ namespace FluentHttp.Ext
             switch (method)
             {
                 case "POST":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, context.JsonSerializerOptions()));
+                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
                     break;
 
                 default:
