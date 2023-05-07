@@ -8,6 +8,7 @@
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<EnablePackageValidation>true</EnablePackageValidation>-->
 		<LangVersion>10</LangVersion>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<version>0.0.1</version>
 		<Description>http、source generator、roslyn、LoadBalancing</Description>

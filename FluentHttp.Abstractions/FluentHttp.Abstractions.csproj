@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 	<version>0.0.1</version>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Description>http、source generator、roslyn、LoadBalancing</Description>
   </PropertyGroup>
 
