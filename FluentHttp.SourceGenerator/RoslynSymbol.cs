@@ -48,6 +48,14 @@ namespace FluentHttp.SourceGenerator
         }
 
         /// <summary>
+        /// 接口上的url
+        /// </summary>
+        public string Url
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 接口信息
         /// </summary>
         public InterfaceDeclarationSyntax InterfaceDeclarationSyntax { get; set; }
@@ -63,6 +71,20 @@ namespace FluentHttp.SourceGenerator
             {
                 return InterfaceDeclarationSyntax.Ancestors().OfType<CompilationUnitSyntax>().FirstOrDefault()?.GetUsings();
             }
+        }
+
+        public string GetUrl(string url)
+        {
+            url ??= "";
+            if (!string.IsNullOrWhiteSpace(Url) && !url.StartsWith(DaprConst.UrlPrefix))
+            {
+                url = Url + DaprConst.UrlPrefix + url;
+            }
+            if (url.StartsWith(DaprConst.UrlPrefix))
+            {
+                url = url.Substring(1);
+            }
+            return url;
         }
     }
 

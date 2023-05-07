@@ -82,22 +82,23 @@ services.TryAddSingleton<IContext, CustContext>();
 - ReturnString - 返回string 类型
 
 ```csharp
-[FluentHttp(AppId = "order", Name = "OrderConsumer", Auth = "jwt")]
+[FluentHttp(AppId = "order", Url = "api/v1/order", Name = "OrderConsumer", Auth = "jwt")]
 public interface IOrderConsumer
 {
     /// <summary>
     /// 获取所有订单
     /// </summary>
     /// <returns></returns>
-    [HttpGet(AppId = "order", Url = "api/v1/order/all")]
+    [HttpGet(AppId = "order", Url = "all")]
     Task<IEnumerable<Order>> GetOrders();
 
     /// <summary>
     /// 获取所有订单
     /// 接口上的AppId优先级低于方法上的
+    /// 前缀/开头的Url不会拼接接口上的Url
     /// </summary>
     /// <returns></returns>
-    [HttpGet(Url = "api/v1/order/all")]
+    [HttpGet(Url = "/api/v1/order/all")]
     Task<IEnumerable<Order>> GetAllOrders();
 
     /// <summary>
@@ -105,10 +106,10 @@ public interface IOrderConsumer
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet(AppId = "order", Url = "api/v1/order/{id}")]
+    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> GetOrderById([PathVariable] int id);
 
-    [HttpGet(AppId = "order", Url = "api/v1/order/{id}", ReturnString = true)]
+    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", ReturnString = true)]
     Task<string> GetOrderByIdToString([PathVariable] int id);
 
     /// <summary>
@@ -116,19 +117,19 @@ public interface IOrderConsumer
     /// </summary>
     /// <param name="order"></param>
     /// <returns></returns>
-    [HttpPost(AppId = "order", Url = "api/v1/order")]
+    [HttpPost(AppId = "order", Url = "/api/v1/order")]
     Task<Order> CreateOrder(Order order);
 
-    [HttpPut(AppId = "order", Url = "api/v1/order/{id}")]
+    [HttpPut(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> UpdateOrder([PathVariable] int id, Order order);
 
-    [HttpDelete(AppId = "order", Url = "api/v1/order/{id}")]
+    [HttpDelete(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> DeleteOrder([PathVariable] int id);
 
-    [HttpFileUpload(AppId = "order", Url = "api/v1/order/single-file")]
+    [HttpFileUpload(AppId = "order", Url = "/api/v1/order/single-file")]
     Task<Order> UploadFileByPath([FilePathVariable] string filepath);
 
-    [HttpFileUpload(AppId = "order", Url = "api/v1/order/multi-file")]
+    [HttpFileUpload(AppId = "order", Url = "/api/v1/order/multi-file")]
     Task<Order> UploadMultipartFileByPath([FilePathVariable] List<string> filepath);
 }
 

@@ -63,8 +63,11 @@ namespace FluentHttp.SourceGenerator
                 metaData.TryGetValue(DaprConst.Name, out string className);
                 metaData.TryGetValue(DaprConst.Auth, out string auth);
                 metaData.TryGetValue(DaprConst.AppId, out string appId);
+                metaData.TryGetValue(DaprConst.Url, out string url);
+
                 roslynSymbol.Auth = auth;
                 roslynSymbol.AppId = appId;
+                roslynSymbol.Url = url;
                 roslynSymbol.ImplClassName = string.IsNullOrWhiteSpace(className) ? roslynSymbol.InterfaceName.Substring(1) : className;
                 var sourceText = new SourceTextBuild()
                     .WithUsingNameSpaces(roslynSymbol.GetUsings)
@@ -196,6 +199,7 @@ _chooseUrl = chooseUrl;
             {
                 appId = roslynSymbol.AppId;
             }
+            url = roslynSymbol.GetUrl(url);
             string url2 = "";
             string url3 = "";
             Dictionary<string, object> query = new Dictionary<string, object>();

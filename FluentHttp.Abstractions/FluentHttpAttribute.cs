@@ -11,6 +11,12 @@ namespace FluentHttp.Abstractions
         public string AppId { get; set; }
 
         /// <summary>
+        /// baseUrl
+        /// 方法Url 前缀为/ 不会拼接FluentHttp特性上的Url
+        /// </summary>
+        public string Url { get; set; }
+
+        /// <summary>
         /// 实现的类名
         /// 为空 ITest => Test
         /// </summary>

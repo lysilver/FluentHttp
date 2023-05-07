@@ -35,6 +35,8 @@ namespace FluentHttp.SourceGenerator
 
         public static readonly string Auth = "Auth";
 
+        public static readonly string UrlPrefix = "/";
+
         /// <summary>
         /// Environment.NewLine 分析器不能用，需要禁止分析器
         /// </summary>
