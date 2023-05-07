@@ -2,6 +2,9 @@ namespace FluentHttp.Ext
 {
     public class HttpRequestValues<T>
     {
+        public HttpRequestValues()
+        { }
+
         public HttpRequestValues(T? value, string appId, string url, string method, string? auth)
         {
             Value = value;

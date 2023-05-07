@@ -1,9 +1,5 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using FluentHttp.Ext;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.FileProviders;
-using System.Diagnostics;
-using System.Net;
 
 namespace DaprDemo.Controllers
 {
@@ -19,12 +15,18 @@ namespace DaprDemo.Controllers
         private readonly ILogger<OrderController> _logger;
         private readonly IHttpClientFactory clientFactory;
         private readonly IWebHostEnvironment environment;
+        private readonly HttpRequestValuesPool<object> _pool;
+        private readonly ObjectPool<HttpRequestValues<object>> _pool1;
 
-        public OrderController(ILogger<OrderController> logger, IHttpClientFactory clientFactory, IWebHostEnvironment environment)
+        public OrderController(ILogger<OrderController> logger, IHttpClientFactory clientFactory,
+            IWebHostEnvironment environment, HttpRequestValuesPool<object> pool,
+            ObjectPool<HttpRequestValues<object>> pool1)
         {
             _logger = logger;
             this.clientFactory = clientFactory;
             this.environment = environment;
+            _pool = pool;
+            _pool1 = pool1;
         }
 
         /// <summary>
@@ -180,6 +182,43 @@ namespace DaprDemo.Controllers
             }
             long fileSize = fileInfo.Length;
             return Ok(fileSize);
+        }
+
+        [HttpGet("k6/native")]
+        public IActionResult K6TestNative()
+        {
+            var model = new HttpRequestValues<object>();
+            return Ok();
+        }
+
+        [HttpGet("k6/pool")]
+        public IActionResult K6TestPool()
+        {
+            int index = -1;
+            try
+            {
+                var model = _pool.Get(out index);
+                return Ok();
+            }
+            finally
+            {
+                _pool.Free(index);
+            }
+        }
+
+        [HttpGet("k6/pool1")]
+        public IActionResult K6TestPool1()
+        {
+            HttpRequestValues<object> model = null;
+            try
+            {
+                model = _pool1.Allocate();
+                return Ok();
+            }
+            finally
+            {
+                _pool1.Free(model);
+            }
         }
 
         [NonAction]

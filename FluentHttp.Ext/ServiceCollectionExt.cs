@@ -28,5 +28,15 @@ namespace YL.Extensions.DependencyInjection
             services.AddSingleton<IChooseUrl, DefaultChooseUrl>();
             return services;
         }
+
+        public static IServiceCollection AddFluentHttpPool(this IServiceCollection services)
+        {
+            services.AddSingleton(new HttpRequestValuesPool<object>(30));
+            services.AddSingleton(new ObjectPool<HttpRequestValues<object>>(() =>
+            {
+                return new HttpRequestValues<object>();
+            }, 30));
+            return services;
+        }
     }
 }
