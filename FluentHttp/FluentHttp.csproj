@@ -10,6 +10,8 @@
       <RootNamespace>FluentHttp</RootNamespace>
       <PackageProjectUrl>https://github.com/lysilver/FluentHttp</PackageProjectUrl>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +19,6 @@
     <ProjectReference Include="..\FluentHttp.Ext\FluentHttp.Ext.csproj" />
   </ItemGroup>
   <ItemGroup>
-  	<None Include="../README.md" Pack="true" PackagePath="\"/>
+  	<None Include="../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

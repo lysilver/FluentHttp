@@ -37,7 +37,7 @@ namespace FluentHttp.Ext
         public static async Task<TResponse?> HttpGet<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             return await client.GetFromJsonAsync<TResponse>(url, clientAdapter.JsonSerializerOptions());
@@ -47,7 +47,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.PostAsJsonAsync(url, data);
@@ -58,7 +58,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.PutAsJsonAsync(url, data);
@@ -69,7 +69,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             HttpRequestMessage httpRequest = new()
@@ -86,7 +86,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.DeleteAsync(url);
@@ -98,17 +98,16 @@ namespace FluentHttp.Ext
         /// </summary>
         /// <typeparam name="TResponse"></typeparam>
         /// <param name="client"></param>
-        /// <param name="context"></param>
+        /// <param name="clientAdapter"></param>
         /// <param name="appId"></param>
         /// <param name="url"></param>
         /// <param name="filePath"></param>
-        /// <param name="header"></param>
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, string filePath,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
@@ -125,17 +124,16 @@ namespace FluentHttp.Ext
         /// </summary>
         /// <typeparam name="TResponse"></typeparam>
         /// <param name="client"></param>
-        /// <param name="context"></param>
+        /// <param name="clientAdapter"></param>
         /// <param name="appId"></param>
         /// <param name="url"></param>
         /// <param name="filePaths"></param>
-        /// <param name="header"></param>
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, List<string> filePaths,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
@@ -154,7 +152,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, List<FileStream> streams,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
@@ -171,7 +169,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, FileStream stream,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             using MultipartFormDataContent content = new MultipartFormDataContent();
@@ -185,7 +183,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             HttpRequestMessage httpRequest = new()
@@ -218,7 +216,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             HttpRequestMessage httpRequest = new()
@@ -255,7 +253,7 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
             long fileSize, string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(client));
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var bufferSize = 1024 * 1024;

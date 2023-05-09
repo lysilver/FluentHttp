@@ -5,15 +5,13 @@ namespace FluentHttp.Ext
 {
     public class HttpClientAdapter : IHttpClientAdapter
     {
-        private readonly IHttpClientFactory _clientFactory;
         private readonly IContext _context;
         private readonly IChooseUrl _chooseUrl;
         private readonly IServiceDiscovery _serviceDiscovery;
 
-        public HttpClientAdapter(IHttpClientFactory clientFactory, IContext context, IChooseUrl chooseUrl,
+        public HttpClientAdapter(IContext context, IChooseUrl chooseUrl,
             IServiceDiscovery serviceDiscovery)
         {
-            _clientFactory = clientFactory;
             _context = context;
             _chooseUrl = chooseUrl;
             _serviceDiscovery = serviceDiscovery;

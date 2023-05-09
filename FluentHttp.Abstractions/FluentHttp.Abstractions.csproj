@@ -5,6 +5,8 @@
 	<version>0.0.1</version>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Description>http、source generator、roslyn、LoadBalancing</Description>
+	<RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
 </Project>

@@ -13,6 +13,8 @@
 		<version>0.0.1</version>
 		<Description>http、source generator、roslyn、LoadBalancing</Description>
 		<PackageProjectUrl>https://github.com/lysilver/FluentHttp</PackageProjectUrl>
+	    <RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>
+	    <RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<ItemGroup>
