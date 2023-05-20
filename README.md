@@ -89,12 +89,13 @@ services.TryAddSingleton<IServiceDiscovery, CustServiceDiscovery>();
 
 ### 支持请求
 
-#### GET POST DELETE PUT
+#### GET POST DELETE PUT PATCH
 
 - [FluentHttp(AppId = "order", Name = "OrderConsumer", Auth = "jwt")] Name-生成的类名 Auth- 验证的header取值
 - [HttpGet(AppId = "order", Url = "api/v1/order/all")]
 - [HttpPost(AppId = "order", Url = "api/v1/order/all")]
 - [HttpPut(AppId = "order", Url = "api/v1/order/all")]
+- [HttpPatch(AppId = "order", Url = "api/v1/order/all")]
 - [HttpDelete(AppId = "order", Url = "api/v1/order/all")]
 - [HttpFileUpload(AppId = "order", Url = "api/v1/order/all")]
 - [FilePathVariable]文件路径
@@ -200,3 +201,11 @@ public interface IOrderConsumer
 - [x] 轮询(RoundRobin)
 - [x] 随机(Random)
 - [x] 加权随机(WeightedRandom)
+
+#### v0.0.2
+
+fix: bug
+
+#### v0.0.3
+
+- [x] HttpPatch
