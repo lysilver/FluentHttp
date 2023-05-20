@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 
 namespace FluentHttp.Ext
@@ -62,6 +63,16 @@ namespace FluentHttp.Ext
             url = await clientAdapter.GetUrl(appId, url);
             CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
             var res = await client.PutAsJsonAsync(url, data);
+            return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
+        }
+
+        public static async Task<TResponse?> HttpPatch<TResponse, TRequest>(this HttpClient client,
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
+            string? auth = null)
+        {
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
+            var res = await client.HttpResponseMessageAsync(clientAdapter, appId,
+                url, data, "PATCH", auth);
             return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
@@ -175,7 +186,7 @@ namespace FluentHttp.Ext
             using MultipartFormDataContent content = new MultipartFormDataContent();
             var scontent = new StreamContent(stream, (int)stream.Length);
             content.Add(scontent, "file", stream.Name);
-            var res = client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
+            var res = await client.PostAsync(url, content);
             return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
@@ -183,36 +194,12 @@ namespace FluentHttp.Ext
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
             string? auth = null)
         {
-            ArgumentNullException.ThrowIfNull(client, nameof(client));
-            url = await clientAdapter.GetUrl(appId, url);
-            CreateHeader(client, await clientAdapter.GetHeader(appId), auth);
-            HttpRequestMessage httpRequest = new()
-            {
-                RequestUri = new Uri(url),
-                Method = new HttpMethod(method)
-            };
-            switch (method)
-            {
-                case "POST":
-                case "PUT":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
-                    break;
-
-                case "DELETE":
-                    if (data is not null)
-                    {
-                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-            var res = await client.SendAsync(httpRequest);
+            var res = await client.HttpResponseMessageAsync(clientAdapter, appId,
+                url, data, method, auth);
             return await res.Content.ReadAsStringAsync();
         }
 
-        public static async Task<Stream?> HttpStream<TRequest>(this HttpClient client,
+        public static async Task<HttpResponseMessage> HttpResponseMessageAsync<TRequest>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
             string? auth = null)
         {
@@ -231,6 +218,10 @@ namespace FluentHttp.Ext
                     httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
                     break;
 
+                case "PATCH":
+                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()), Encoding.UTF8, "application/json-patch+json");
+                    break;
+
                 case "DELETE":
                     if (data is not null)
                     {
@@ -242,6 +233,15 @@ namespace FluentHttp.Ext
                     break;
             }
             var res = await client.SendAsync(httpRequest);
+            return res;
+        }
+
+        public static async Task<Stream?> HttpStream<TRequest>(this HttpClient client,
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
+            string? auth = null)
+        {
+            var res = await client.HttpResponseMessageAsync(clientAdapter, appId,
+                url, data, method, auth);
             if (res.IsSuccessStatusCode)
             {
                 return await res.Content.ReadAsStreamAsync();

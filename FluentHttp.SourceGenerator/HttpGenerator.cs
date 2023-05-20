@@ -235,7 +235,7 @@ _clientAdapter = clientAdapter;
             }
             var parameter = memberSymbol.Parameters.FirstOrDefault(c => !c.IsPath);
             var tReqType = "";
-            if (memberSymbol.HttpMethodName == "PUT" || memberSymbol.HttpMethodName == "POST" || memberSymbol.HttpMethodName == "DELETE")
+            if (memberSymbol.HttpMethodName == "Patch"||memberSymbol.HttpMethodName == "PUT" || memberSymbol.HttpMethodName == "POST" || memberSymbol.HttpMethodName == "DELETE")
             {
                 if (parameter is not null)
                 {
@@ -297,6 +297,10 @@ _clientAdapter = clientAdapter;
 
                     case "PUT":
                         dapr += $"var res = await client.HttpPut{genericName}(_clientAdapter, appId, url, {obj}, auth);";
+                        break;
+
+                    case "Patch":
+                        dapr += $"var res = await client.HttpPatch{genericName}(_clientAdapter, appId, url, {obj}, auth);";
                         break;
 
                     default:

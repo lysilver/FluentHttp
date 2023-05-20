@@ -103,6 +103,20 @@ namespace FluentHttp.Test
         }
 
         [Fact]
+        public async Task TestPatch()
+        {
+            var id = 6;
+            var order = new Order
+            {
+                Id = 2,
+                Code = "测试",
+                Date = DateTime.Now
+            };
+            var res = await orderConsumer.UpdatePatchOrder(id, order);
+            Assert.Equal(id, res.Id);
+        }
+
+        [Fact]
         public async Task TestDelete()
         {
             var id = 6;

@@ -14,7 +14,8 @@ namespace FluentHttp.SourceGenerator
                     { "PUT", "FluentHttp.Abstractions.HttpPutAttribute" },
                     { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" },
                     { "FilePath","FluentHttp.Abstractions.FilePathVariableAttribute" },
-                    { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" }
+                    { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" },
+                    {"Patch","FluentHttp.Abstractions.HttpPatchAttribute" }
                 };
 
         public static readonly string Dapr = "DAPR";

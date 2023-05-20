@@ -96,6 +96,20 @@ namespace DaprDemo.Controllers
         }
 
         /// <summary>
+        /// 修改订单信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdatePatchOrder(int id, Order order)
+        {
+            order.Id = id;
+            order = await Task.FromResult(order);
+            return Ok(order);
+        }
+
+        /// <summary>
         /// 删除订单
         /// </summary>
         /// <param name="id"></param>
