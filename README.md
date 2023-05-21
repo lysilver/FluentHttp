@@ -98,6 +98,7 @@ services.TryAddSingleton<IServiceDiscovery, CustServiceDiscovery>();
 - [HttpPatch(AppId = "order", Url = "api/v1/order/all")]
 - [HttpDelete(AppId = "order", Url = "api/v1/order/all")]
 - [HttpFileUpload(AppId = "order", Url = "api/v1/order/all")]
+- [HttpResponseMessage(AppId = "order", Url = "/api/v1/order", HttpMethod = HttpMethodEnum.Post)]
 - [FilePathVariable]文件路径
 - [PathVariable]-url path变量
 - AppId-服务的唯一名称
@@ -209,3 +210,4 @@ fix: bug
 #### v0.0.3
 
 - [x] HttpPatch
+- [x] HttpResponseMessage
