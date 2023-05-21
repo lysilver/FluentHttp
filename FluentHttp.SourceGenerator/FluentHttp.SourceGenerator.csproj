@@ -10,7 +10,7 @@
 		<LangVersion>10</LangVersion>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<version>0.0.2</version>
+		<Version>0.0.3</Version>
 		<Description>http、source generator、roslyn、LoadBalancing</Description>
 		<PackageProjectUrl>https://github.com/lysilver/FluentHttp</PackageProjectUrl>
 	    <RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>
