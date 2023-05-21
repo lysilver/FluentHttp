@@ -53,9 +53,12 @@ namespace FluentHttp.SourceGenerator
             return this;
         }
 
-        public SourceTextBuild WithNetNameSpace()
+        public SourceTextBuild WithNetNameSpace(bool flag)
         {
-            stringBuilder.AppendLine("using System.Net.Http;");
+            if (flag)
+            {
+                stringBuilder.AppendLine("using System.Net.Http;");
+            }
             return this;
         }
 

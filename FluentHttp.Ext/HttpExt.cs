@@ -211,11 +211,12 @@ namespace FluentHttp.Ext
                 RequestUri = new Uri(url),
                 Method = new HttpMethod(method)
             };
+         
             switch (method)
             {
                 case "POST":
                 case "PUT":
-                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
+                    httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()), Encoding.UTF8, "application/json");
                     break;
 
                 case "PATCH":
@@ -225,7 +226,7 @@ namespace FluentHttp.Ext
                 case "DELETE":
                     if (data is not null)
                     {
-                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()));
+                        httpRequest.Content = new StringContent(JsonSerializer.Serialize(data, clientAdapter.JsonSerializerOptions()), Encoding.UTF8, "application/json");
                     }
                     break;
 

@@ -1,6 +1,7 @@
 ﻿using DaprDemo;
 using FluentHttp.Abstractions;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace FluentHttp.Test;
@@ -42,6 +43,9 @@ public interface IOrderConsumer
     /// <returns></returns>
     [HttpPost(AppId = "order", Url = "/api/v1/order")]
     Task<Order> CreateOrder(Order order);
+
+    [HttpResponseMessage(AppId = "order", Url = "/api/v1/order", HttpMethod = HttpMethodEnum.Post)]
+    Task<HttpResponseMessage> CreateOrder_2(Order order);
 
     [HttpPut(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> UpdateOrder([PathVariable] int id, Order order);

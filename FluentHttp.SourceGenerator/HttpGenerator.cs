@@ -64,14 +64,16 @@ namespace FluentHttp.SourceGenerator
                 metaData.TryGetValue(DaprConst.Auth, out string auth);
                 metaData.TryGetValue(DaprConst.AppId, out string appId);
                 metaData.TryGetValue(DaprConst.Url, out string url);
+
                 roslynSymbol.Auth = auth;
                 roslynSymbol.AppId = appId;
                 roslynSymbol.Url = url;
                 roslynSymbol.ImplClassName = string.IsNullOrWhiteSpace(className) ? roslynSymbol.InterfaceName.Substring(1) : className;
+
                 var sourceText = new SourceTextBuild()
                     .WithUsingNameSpaces(roslynSymbol.GetUsings)
                     .WithDaprNameSpace()
-                    .WithNetNameSpace()
+                    .WithNetNameSpace(!roslynSymbol.GetUsings.Contains("System.Net.Http"))
                     .WithNewLine()
                     .WithNameSpace(roslynSymbol.NamespaceName)
                     .WithLeftBracket()
@@ -202,6 +204,7 @@ _clientAdapter = clientAdapter;
             attributeDict.TryGetValue(DaprConst.Url, out var url);
             attributeDict.TryGetValue(DaprConst.AppId, out var appId);
             attributeDict.TryGetValue(DaprConst.ReturnString, out var returnString);
+            attributeDict.TryGetValue(DaprConst.MemberHttpMethod, out string httpMethod);
             if (string.IsNullOrWhiteSpace(appId))
             {
                 appId = roslynSymbol.AppId;
@@ -235,7 +238,7 @@ _clientAdapter = clientAdapter;
             }
             var parameter = memberSymbol.Parameters.FirstOrDefault(c => !c.IsPath);
             var tReqType = "";
-            if (memberSymbol.HttpMethodName == "Patch"||memberSymbol.HttpMethodName == "PUT" || memberSymbol.HttpMethodName == "POST" || memberSymbol.HttpMethodName == "DELETE")
+            if (memberSymbol.HttpMethodName == "Patch" || memberSymbol.HttpMethodName == "PUT" || memberSymbol.HttpMethodName == "POST" || memberSymbol.HttpMethodName == "DELETE")
             {
                 if (parameter is not null)
                 {
@@ -303,6 +306,18 @@ _clientAdapter = clientAdapter;
                         dapr += $"var res = await client.HttpPatch{genericName}(_clientAdapter, appId, url, {obj}, auth);";
                         break;
 
+                    case "HttpResponseMessage":
+                        obj ??= "null";
+                        genericName = $"<object>";
+                        if (parameter is not null)
+                        {
+                            tReqType = parameter.Type;
+                            genericName = $"<{tReqType}>";
+                        }
+                        dapr += "var method = " + $@"""{GetMethod(httpMethod)}""" + ";" + DaprConst.NewLine;
+                        dapr += $"var res = await client.HttpResponseMessageAsync{genericName}(_clientAdapter, appId, url, {obj}, method, auth);";
+                        break;
+
                     default:
                         break;
                 }
@@ -317,6 +332,19 @@ _clientAdapter = clientAdapter;
             return res;
             ";
             return code;
+        }
+
+        private string GetMethod(string method)
+        {
+            // Post, Delete, Put, Patch, Get
+            return method switch
+            {
+                "0" => "POST",
+                "1" => "DELETE",
+                "2" => "PUT",
+                "3" => "PATCH",
+                _ => "GET",
+            };
         }
     }
 }

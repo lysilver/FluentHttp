@@ -15,7 +15,8 @@ namespace FluentHttp.SourceGenerator
                     { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" },
                     { "FilePath","FluentHttp.Abstractions.FilePathVariableAttribute" },
                     { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" },
-                    {"Patch","FluentHttp.Abstractions.HttpPatchAttribute" }
+                    { "Patch","FluentHttp.Abstractions.HttpPatchAttribute" },
+                    { "HttpResponseMessage","FluentHttp.Abstractions.HttpResponseMessageAttribute" }
                 };
 
         public static readonly string Dapr = "DAPR";
@@ -37,6 +38,8 @@ namespace FluentHttp.SourceGenerator
         public static readonly string Auth = "Auth";
 
         public static readonly string UrlPrefix = "/";
+
+        public static readonly string MemberHttpMethod = "HttpMethod";
 
         /// <summary>
         /// Environment.NewLine 分析器不能用，需要禁止分析器

@@ -89,6 +89,22 @@ namespace FluentHttp.Test
         }
 
         [Fact]
+        public async Task TestHttpReponseMessage()
+        {
+            var order = new Order
+            {
+                Id = 2,
+                Code = "测试",
+                Date = DateTime.Now
+            };
+            var responseMessage = await orderConsumer.CreateOrder_2(order);
+            var res = await responseMessage.Content.ReadFromJsonAsync<Order>();
+            Assert.True(responseMessage.IsSuccessStatusCode);
+            Assert.NotNull(res);
+            Assert.Equal(order.Id, res.Id);
+        }
+
+        [Fact]
         public async Task TestPut()
         {
             var id = 6;
