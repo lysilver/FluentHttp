@@ -3,7 +3,7 @@
   <PropertyGroup>
       <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
 	  <LangVersion>10</LangVersion>
-      <Version>0.0.4</Version>
+      <Version>0.0.5</Version>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <Description>http、source generator、roslyn、LoadBalancing</Description>
       <AssemblyName>Y.FluentHttp</AssemblyName>

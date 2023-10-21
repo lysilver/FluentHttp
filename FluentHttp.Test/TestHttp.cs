@@ -35,9 +35,8 @@ namespace FluentHttp.Test
             IConfiguration configuration = builder.Build();
             services.AddScoped(_ => configuration);
             services.AddHttpClient();
+            services.AddDefaultFluentHttp();
             services.AddFluentHttp();
-            services.AddHttpHeader();
-            services.AddLoadBalancing();
             httpClientFactory = (IHttpClientFactory)services.BuildServiceProvider().GetRequiredService(typeof(IHttpClientFactory));
             orderConsumer = (IOrderConsumer)services.BuildServiceProvider().GetRequiredService(typeof(IOrderConsumer));
             context = (IContext)services.BuildServiceProvider().GetRequiredService(typeof(IContext));

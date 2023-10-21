@@ -40,6 +40,7 @@ namespace FluentHttp.SourceGenerator
         private void GenDapr(GeneratorExecutionContext context, SyntaxReceiver syntaxReceiver)
         {
             List<RoslynSymbol> symbols = new List<RoslynSymbol>();
+            string classNameSpace = "YL.Extensions.DependencyInjection";
             syntaxReceiver.InterfaceDeclarationSyntaxes.ForEach(x =>
             {
                 RoslynSymbol roslynSymbol = new RoslynSymbol
@@ -56,6 +57,7 @@ namespace FluentHttp.SourceGenerator
                 {
                     namespaceName = classSymbol.ContainingNamespace.OriginalDefinition.ToDisplayString();
                 }
+                classNameSpace = namespaceName;
                 roslynSymbol.NamespaceName = namespaceName;
                 // 获取接口上的注解
                 var metaData = classSymbol.AttributeDict();
@@ -118,10 +120,10 @@ namespace FluentHttp.SourceGenerator
                 context.AddSource(roslynSymbol.ImplClassName + ".g.cs", SourceText.From(sourceText.Build(), Encoding.UTF8));
             });
 
-            context.AddSource("ServiceCollectionExt.g.cs", SourceText.From(GenServiceAddDapr(symbols), Encoding.UTF8));
+            context.AddSource("ServiceCollectionExt.g.cs", SourceText.From(GenServiceAddDapr(symbols, classNameSpace), Encoding.UTF8));
         }
 
-        private string GenServiceAddDapr(List<RoslynSymbol> symbols)
+        private string GenServiceAddDapr(List<RoslynSymbol> symbols, string classNameSpace)
         {
             var di = string.Empty;
             List<string> usings = new List<string>();
@@ -144,7 +146,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using YL.Extensions.DependencyInjection;
 using System;
 {us}
-namespace YL.Extensions.DependencyInjection
+namespace {classNameSpace}
 {{
     public static partial class ServiceCollectionExtG
     {{

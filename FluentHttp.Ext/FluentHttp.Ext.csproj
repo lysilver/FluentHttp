@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;net7.0;</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<Version>0.0.4</Version>
+	<Version>0.0.5</Version>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Description>http、source generator、roslyn、LoadBalancing</Description>
 	<RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>

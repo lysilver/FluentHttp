@@ -10,11 +10,10 @@ builder.Services.AddRouting(options =>
     options.LowercaseUrls = true;
 });
 builder.Services.AddHttpClient();
-builder.Services.AddHttpHeader();
+builder.Services.AddDefaultFluentHttp();
 builder.Services.AddFluentHttp(ServiceLifetime.Scoped);
 builder.Services.AddFluentHttpPool();
 // ¸ºÔØ¾ùºâ
-builder.Services.AddLoadBalancing();
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {

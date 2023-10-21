@@ -54,5 +54,13 @@ namespace YL.Extensions.DependencyInjection
             }, 30));
             return services;
         }
+
+        public static IServiceCollection AddDefaultFluentHttp(this IServiceCollection services)
+        {
+            services.AddHttpHeader();
+            services.AddDefaultServiceDiscovery();
+            services.AddLoadBalancing();
+            return services;
+        }
     }
 }

@@ -10,7 +10,7 @@
 		<LangVersion>10</LangVersion>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<Version>0.0.4</Version>
+		<Version>0.0.5</Version>
 		<Description>http、source generator、roslyn、LoadBalancing</Description>
 		<PackageProjectUrl>https://github.com/lysilver/FluentHttp</PackageProjectUrl>
 	    <RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>
@@ -28,7 +28,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.5.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.7.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<!--<None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />-->

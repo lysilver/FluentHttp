@@ -17,8 +17,20 @@ FluentHttp.SourceGenerator
 ```csharp
 builder.Services.AddHttpClient();
 // builder.Services.AddHttpHeader();
-// 负载均衡
-builder.Services.AddLoadBalancing();
+builder.Services.AddDefaultFluentHttp();
+builder.Services.AddFluentHttp(ServiceLifetime.Scoped);
+
+```
+
+- 自定义DI注入
+
+```csharp
+builder.Services.AddHttpClient(); // 必须
+// 自行实现服务间的传递的参数通过header
+// builder.Services.AddHttpHeader();
+builder.Services.AddLoadBalancing(); // 可选
+builder.Services.AddHttpAdapter(); // 必须
+// 注入生成的服务
 builder.Services.AddFluentHttp(ServiceLifetime.Scoped);
 
 ```
@@ -216,3 +228,7 @@ fix: bug
 
 sourcelink
 
+#### v0.0.5
+
+- [x] 修改生成的注入的服务为当前的命名空间
+- [x] add AddDefaultFluentHttp
