@@ -132,7 +132,7 @@ namespace FluentHttp.SourceGenerator
             {
                 usings.AddRange(roslynSymbol.GetUsings);
                 usings.Add(roslynSymbol.NamespaceName);
-                di += $"services.TryAdd(ServiceDescriptor.Describe(typeof({roslynSymbol.InterfaceName}), typeof({roslynSymbol.ImplClassName}), lifetime));" + DaprConst.NewLine;
+                di += $"services.TryAdd(ServiceDescriptor.Describe(typeof({roslynSymbol.InterfaceName}), typeof({roslynSymbol.ImplClassName}), lifetime));" + DaprConst.NewLine + new string(' ', 8);
                 //di += $"services.AddScoped<{roslynSymbol.InterfaceName}, {roslynSymbol.ImplClassName}>();" + System.Environment.NewLine;
             });
             var us = "";
@@ -296,8 +296,16 @@ _clientAdapter = clientAdapter;
 
                     case "HttpFileUpload":
                         var filepathParam = memberSymbol.Parameters.FirstOrDefault(c => c.IsFilePath);
+                        var formDataParam = memberSymbol.Parameters.FirstOrDefault(c => !c.IsFilePath);
                         var filepath = filepathParam.Name;
-                        dapr += $"var res = await client.UploadFile{genericName}(_clientAdapter, appId, url, {filepath}, auth);";
+                        if (formDataParam is not null)
+                        {
+                            dapr += $"var res = await client.UploadFile{genericName}(_clientAdapter, appId, url, {filepath}, auth, {formDataParam.Name});";
+                        }
+                        else
+                        {
+                            dapr += $"var res = await client.UploadFile{genericName}(_clientAdapter, appId, url, {filepath}, auth);";
+                        }
                         break;
 
                     case "PUT":

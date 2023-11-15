@@ -113,10 +113,12 @@ namespace FluentHttp.Ext
         /// <param name="appId"></param>
         /// <param name="url"></param>
         /// <param name="filePath"></param>
+        /// <param name="auth"></param>
+        /// <param name="fromData">传递参数</param>
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, string filePath,
-            string? auth = null)
+            string? auth = null, Dictionary<string, string>? fromData = null)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
@@ -125,6 +127,13 @@ namespace FluentHttp.Ext
             FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read);
             var fileName = Path.GetFileName(filePath);
             var scontent = new StreamContent(fileStream, (int)fileStream.Length);
+            if (fromData is not null)
+            {
+                foreach (var (key, value) in fromData)
+                {
+                    content.Add(new StringContent(value), key);
+                }
+            }
             content.Add(scontent, "file", fileName);
             var res = await client.PostAsync(url, content);
             return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
@@ -142,7 +151,7 @@ namespace FluentHttp.Ext
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, List<string> filePaths,
-            string? auth = null)
+            string? auth = null, Dictionary<string, string>? fromData = null)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
@@ -155,13 +164,20 @@ namespace FluentHttp.Ext
                 var scontent = new StreamContent(fileStream, (int)fileStream.Length);
                 content.Add(scontent, "files", fileName);
             }
+            if (fromData is not null)
+            {
+                foreach (var (key, value) in fromData)
+                {
+                    content.Add(new StringContent(value), key);
+                }
+            }
             var res = await client.PostAsync(url, content);
             return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, List<FileStream> streams,
-            string? auth = null)
+            string? auth = null, Dictionary<string, string>? fromData = null)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
@@ -172,13 +188,20 @@ namespace FluentHttp.Ext
                 var scontent = new StreamContent(stream, (int)stream.Length);
                 content.Add(scontent, "files", stream.Name);
             }
+            if (fromData is not null)
+            {
+                foreach (var (key, value) in fromData)
+                {
+                    content.Add(new StringContent(value), key);
+                }
+            }
             var res = await client.PostAsync(url, content);
             return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
 
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, FileStream stream,
-            string? auth = null)
+            string? auth = null, Dictionary<string, string>? fromData = null)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
@@ -186,6 +209,13 @@ namespace FluentHttp.Ext
             using MultipartFormDataContent content = new MultipartFormDataContent();
             var scontent = new StreamContent(stream, (int)stream.Length);
             content.Add(scontent, "file", stream.Name);
+            if (fromData is not null)
+            {
+                foreach (var (key, value) in fromData)
+                {
+                    content.Add(new StringContent(value), key);
+                }
+            }
             var res = await client.PostAsync(url, content);
             return await res.Content.ReadFromJsonAsync<TResponse>(clientAdapter.JsonSerializerOptions());
         }
@@ -211,7 +241,7 @@ namespace FluentHttp.Ext
                 RequestUri = new Uri(url),
                 Method = new HttpMethod(method)
             };
-         
+
             switch (method)
             {
                 case "POST":
@@ -252,7 +282,7 @@ namespace FluentHttp.Ext
 
         public static async Task DownloadRangeChunkAsync<TRequest>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
-            long fileSize, string? auth = null)
+            long fileSize, string fileName, string? auth = null)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             url = await clientAdapter.GetUrl(appId, url);
@@ -263,7 +293,7 @@ namespace FluentHttp.Ext
             {
                 var rangeStart = i * bufferSize;
                 var rangeEnd = Math.Min(rangeStart + bufferSize - 1, fileSize - 1);
-                tasks[i] = DownloadChunkAsync(client, clientAdapter, url, data, method, rangeStart, rangeEnd, "fileName");
+                tasks[i] = DownloadChunkAsync(client, clientAdapter, url, data, method, rangeStart, rangeEnd, fileName);
             }
             await Task.WhenAll(tasks);
         }

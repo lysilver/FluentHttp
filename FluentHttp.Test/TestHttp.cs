@@ -23,6 +23,7 @@ namespace FluentHttp.Test
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IOrderConsumer orderConsumer;
+        private readonly IOrderFileConsumer orderFileConsumer;
         private readonly IContext context;
         private readonly string Node = "YL:FluentHttp";
 
@@ -41,6 +42,7 @@ namespace FluentHttp.Test
             orderConsumer = (IOrderConsumer)services.BuildServiceProvider().GetRequiredService(typeof(IOrderConsumer));
             context = (IContext)services.BuildServiceProvider().GetRequiredService(typeof(IContext));
             context.GetHeader("order");
+            orderFileConsumer = (IOrderFileConsumer)services.BuildServiceProvider().GetRequiredService(typeof(IOrderFileConsumer));
             var clusters = configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
         }
 
@@ -253,6 +255,21 @@ namespace FluentHttp.Test
                 files.Add(file);
             }
             return files;
+        }
+
+        [Fact]
+        public async Task TestUploadFileFormData()
+        {
+            string file = await CreateFile();
+            var data = new Dictionary<string, string>()
+            {
+                {"remark","remark" },
+                {"bucket","bucket" },
+                {"source","source" }
+            };
+            var res = await orderFileConsumer.UploadFileByPath(file, data);
+            DeleteFile(file);
+            Assert.Equal(0, res.Id);
         }
     }
 }

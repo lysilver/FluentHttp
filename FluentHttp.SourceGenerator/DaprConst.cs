@@ -15,6 +15,7 @@ namespace FluentHttp.SourceGenerator
                     { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" },
                     { "FilePath","FluentHttp.Abstractions.FilePathVariableAttribute" },
                     { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" },
+                    { "HttpFileUploadStream","FluentHttp.Abstractions.HttpFileUploadStreamAttribute" },
                     { "Patch","FluentHttp.Abstractions.HttpPatchAttribute" },
                     { "HttpResponseMessage","FluentHttp.Abstractions.HttpResponseMessageAttribute" }
                 };
