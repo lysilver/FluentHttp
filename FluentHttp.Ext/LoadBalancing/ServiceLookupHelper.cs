@@ -1,20 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FluentHttp.Ext.LoadBalancing
+﻿namespace FluentHttp.Ext.LoadBalancing
 {
     public static class ServiceLookupHelper
     {
         public static IDictionary<string, T> ToDictionaryByUniqueId<T>(this IEnumerable<T> services, Func<T, string> idSelector)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
+            ArgumentNullException.ThrowIfNull(services, nameof(services));
             var result = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var service in services)

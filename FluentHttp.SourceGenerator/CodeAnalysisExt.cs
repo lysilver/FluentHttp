@@ -36,5 +36,15 @@ namespace FluentHttp.SourceGenerator
                   .ToDictionary(x => x.Key, x => (string)x.Value.Value);
             return metaData;
         }
+
+        public static Dictionary<string, string> SymbolAttributeDict(this ISymbol namedTypeSymbol)
+        {
+            var metaData = namedTypeSymbol.GetAttributes()
+                  .Where(x => !string.IsNullOrEmpty(x.AttributeClass?.Name))
+                  .Where(x => x.NamedArguments.Length > 0)
+                  .SelectMany(x => x.NamedArguments)
+                  .ToDictionary(x => x.Key, x => (string)x.Value.Value);
+            return metaData;
+        }
     }
 }

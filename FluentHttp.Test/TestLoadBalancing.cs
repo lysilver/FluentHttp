@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -101,7 +102,7 @@ namespace FluentHttp.Test
         }
 
         [Fact]
-        public void TestWeightedRandomLoadBalancingPolicy()
+        public async Task TestWeightedRandomLoadBalancingPolicy()
         {
             var policy = _policies.GetRequiredServiceById(LoadBalancingPolicies.WeightedRandom);
             var tasks = new List<Task>();
@@ -119,7 +120,7 @@ namespace FluentHttp.Test
                     Interlocked.Increment(ref count);
                 }));
             }
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
             var asd = list.GroupBy(c => c).ToList();
             tasks.Clear();
             Interlocked.Exchange(ref count, 0);
@@ -141,7 +142,7 @@ namespace FluentHttp.Test
                         Interlocked.Increment(ref count);
                     }));
             }
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
         }
     }
 }

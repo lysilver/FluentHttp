@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +13,8 @@ namespace FluentHttp.SourceGenerator
     /// <summary>
     ///  IIncrementalGenerator
     /// </summary>
-    [Generator]
+    // [Generator]
+    [Obsolete("HttpIncrementalGenerator替代")]
     public class HttpGenerator : ISourceGenerator
     {
         public void Execute(GeneratorExecutionContext context)

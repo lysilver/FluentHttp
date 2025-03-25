@@ -7,10 +7,10 @@
 		<!--<DevelopmentDependency>true</DevelopmentDependency>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<EnablePackageValidation>true</EnablePackageValidation>-->
-		<LangVersion>10</LangVersion>
+		<LangVersion>12</LangVersion>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<Version>0.0.6</Version>
+		<Version>$(VersionTFMs)</Version>
 		<Description>http、source generator、roslyn、LoadBalancing</Description>
 		<PackageProjectUrl>https://github.com/lysilver/FluentHttp</PackageProjectUrl>
 	    <RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>

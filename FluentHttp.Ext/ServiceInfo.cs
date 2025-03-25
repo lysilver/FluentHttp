@@ -9,7 +9,7 @@
 
         public int Weight { get; set; } = -1;
 
-        public override string? ToString()
+        public override string ToString()
         {
             return $"Weight:{Weight},BaseUrl:{BaseUrl}";
         }

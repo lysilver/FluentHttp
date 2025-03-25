@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<Version>0.0.6</Version>
+	<Version>$(VersionTFMs)</Version>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Description>http、source generator、roslyn、LoadBalancing</Description>
 	<RepositoryUrl>https://github.com/lysilver/FluentHttp</RepositoryUrl>
@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-      <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-	  <LangVersion>10</LangVersion>
-      <Version>0.0.6</Version>
+      <TargetFrameworks>$(ReleaseTFMs)</TargetFrameworks>
+	  <LangVersion>12</LangVersion>
+      <Version>$(VersionTFMs)</Version>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <Description>http、source generator、roslyn、LoadBalancing</Description>
       <AssemblyName>Y.FluentHttp</AssemblyName>
@@ -26,7 +26,7 @@
   	<None Include="../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

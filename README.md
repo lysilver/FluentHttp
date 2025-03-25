@@ -232,3 +232,7 @@ sourcelink
 
 - [x] 修改生成的注入的服务为当前的命名空间
 - [x] add AddDefaultFluentHttp
+
+#### v0.0.6
+
+- [x] 文件上传

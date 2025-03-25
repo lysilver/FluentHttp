@@ -3,11 +3,11 @@
     public abstract class AbstractObjectPool<T>
     {
         private readonly T[] factorys;
-        private int[] locks;
+        private readonly int[] locks;
 
         public abstract T CreateInstance();
 
-        private int MaxPoolSize = 10;
+        private readonly int MaxPoolSize = 10;
 
         public AbstractObjectPool(int poolSize)
         {
