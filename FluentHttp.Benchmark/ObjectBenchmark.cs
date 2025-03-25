@@ -1,11 +1,10 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 
 namespace FluentHttp.Benchmark
 {
-    [SimpleJob(RuntimeMoniker.Net80)]
-    [SimpleJob(RuntimeMoniker.Net90)]
+    [MemoryDiagnoser]
     [RPlotExporter]
+    [SimpleJob]
     public class ObjectBenchmark
     {
         [Params(1000000, 10000000)]

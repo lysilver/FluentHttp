@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -90,30 +89,6 @@ namespace FluentHttp.SourceGenerator
                 //        }
                 //    }
                 //}");
-            });
-
-            var sfd = context.SyntaxProvider
-                .ForAttributeWithMetadataName("FluentHttp.Abstractions.FluentHttpAttribute", (_, _) => true,
-                    (context, token) =>
-                    {
-                        var atts = context.Attributes.Length;
-                        return "";
-                    })
-                .SelectMany((names, _) => names);
-
-            context.RegisterSourceOutput(sfd, (sourceProductionContext, filePaths) =>
-            {
-                sourceProductionContext.AddSource("additionalFiles.cs", @"
-                namespace Generated
-                {
-                    public class AdditionalTextList
-                    {
-                        public static void PrintTexts()
-                        {
-                            System.Console.WriteLine(""Additional Texts were: " + string.Join(", ", filePaths) + @" "");
-                        }
-                    }
-                }");
             });
         }
 
