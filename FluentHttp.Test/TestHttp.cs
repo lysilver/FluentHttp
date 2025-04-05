@@ -35,11 +35,12 @@ namespace FluentHttp.Test
             services.AddHttpClient();
             services.AddDefaultFluentHttp();
             services.AddFluentHttp();
-            httpClientFactory = (IHttpClientFactory)services.BuildServiceProvider().GetRequiredService(typeof(IHttpClientFactory));
-            orderConsumer = (IOrderConsumer)services.BuildServiceProvider().GetRequiredService(typeof(IOrderConsumer));
-            context = (IContext)services.BuildServiceProvider().GetRequiredService(typeof(IContext));
+            var serviceProvider = services.BuildServiceProvider();
+            httpClientFactory = (IHttpClientFactory)serviceProvider.GetRequiredService(typeof(IHttpClientFactory));
+            orderConsumer = (IOrderConsumer)serviceProvider.GetRequiredService(typeof(IOrderConsumer));
+            context = (IContext)serviceProvider.GetRequiredService(typeof(IContext));
             context.GetHeader("order");
-            orderFileConsumer = (IOrderFileConsumer)services.BuildServiceProvider().GetRequiredService(typeof(IOrderFileConsumer));
+            orderFileConsumer = (IOrderFileConsumer)serviceProvider.GetRequiredService(typeof(IOrderFileConsumer));
             var clusters = configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
         }
 

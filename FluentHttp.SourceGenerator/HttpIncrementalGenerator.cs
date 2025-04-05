@@ -73,22 +73,10 @@ namespace FluentHttp.SourceGenerator
             // collect the paths into a batch
             IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
 
-            // take the file paths from the above batch and make some user visible syntax
+            symbols = symbols.Distinct(new RoslynSymbolCompare()).ToList();
             context.RegisterSourceOutput(collected, (sourceProductionContext, filePaths) =>
             {
                 sourceProductionContext.AddSource("ServiceCollectionExt.g.cs", SourceText.From(GenServiceAddDapr(symbols, classNameSpace), Encoding.UTF8));
-
-                //                sourceProductionContext.AddSource("additionalFiles.cs", @"
-                //namespace Generated
-                //{
-                //    public class AdditionalTextList
-                //    {
-                //        public static void PrintTexts()
-                //        {
-                //            System.Console.WriteLine(""Additional Texts were: " + string.Join(", ", filePaths) + @" "");
-                //        }
-                //    }
-                //}");
             });
         }
 

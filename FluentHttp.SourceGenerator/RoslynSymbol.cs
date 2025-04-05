@@ -265,4 +265,17 @@ namespace FluentHttp.SourceGenerator
     }
 
     #endregion Parameter
+
+    public class RoslynSymbolCompare : IEqualityComparer<RoslynSymbol>
+    {
+        public bool Equals(RoslynSymbol x, RoslynSymbol y)
+        {
+            return x.InterfaceName == y.InterfaceName;
+        }
+
+        public int GetHashCode(RoslynSymbol obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
 }
