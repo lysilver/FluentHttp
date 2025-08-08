@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace FluentHttp.SourceGenerator
 {
@@ -41,7 +40,7 @@ namespace FluentHttp.SourceGenerator
             {
                 return OnVisitSyntaxNode(syntaxNode);
             },
-                (GeneratorSyntaxContext generatorSyntaxContext, CancellationToken _) =>
+                (generatorSyntaxContext, _) =>
                 {
                     return generatorSyntaxContext;
                 });
@@ -73,11 +72,62 @@ namespace FluentHttp.SourceGenerator
             // collect the paths into a batch
             IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
 
-            symbols = symbols.Distinct(new RoslynSymbolCompare()).ToList();
-            context.RegisterSourceOutput(collected, (sourceProductionContext, filePaths) =>
+            symbols = [.. symbols.Distinct(new RoslynSymbolCompare())];
+
+            var fluentHttpInterfaces = context.SyntaxProvider
+              .CreateSyntaxProvider(
+                  predicate: static (node, _) => node is InterfaceDeclarationSyntax ids && ids.AttributeLists.Count > 0,
+                  transform: static (ctx, _) =>
+                  {
+                      var interfaceSyntax = (InterfaceDeclarationSyntax)ctx.Node;
+                      var symbol = ctx.SemanticModel.GetDeclaredSymbol(interfaceSyntax) as INamedTypeSymbol;
+                      return (Syntax: interfaceSyntax, Symbol: symbol);
+                  })
+              .Where(pair => pair.Symbol is not null &&
+                   pair.Symbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == "FluentHttpAttribute"))
+              .Collect();
+            context.RegisterSourceOutput(fluentHttpInterfaces, (ctx, interfaces) =>
             {
-                sourceProductionContext.AddSource("ServiceCollectionExt.g.cs", SourceText.From(GenServiceAddDapr(symbols, classNameSpace), Encoding.UTF8));
+                List<RoslynSymbol> roslynSymbols = new();
+                foreach (var (syntax, symbol) in interfaces)
+                {
+                    RoslynSymbol roslynSymbol = new RoslynSymbol
+                    {
+                        InterfaceDeclarationSyntax = syntax
+                    };
+
+                    var symbolDisplayFormat = new SymbolDisplayFormat
+                            (
+                                // 带上命名空间和类型名
+                                SymbolDisplayGlobalNamespaceStyle.Included,
+                                // 命名空间之前加上 global 防止冲突
+                                SymbolDisplayTypeQualificationStyle
+                                    .NameAndContainingTypesAndNamespaces
+                            );
+                    ISymbol classSymbol = symbol;
+                    var displayString = classSymbol.ToDisplayString(symbolDisplayFormat);
+
+                    // namepace test;
+                    var namespaceName = syntax.FirstAncestorOrSelf<NamespaceDeclarationSyntax>()?.Name.ToString();
+                    if (string.IsNullOrWhiteSpace(namespaceName))
+                    {
+                        namespaceName = classSymbol.ContainingNamespace.OriginalDefinition.ToDisplayString();
+                    }
+                    var metaData = classSymbol.SymbolAttributeDict();
+                    // 获取接口上的特性数据
+                    metaData.TryGetValue(DaprConst.Name, out string className);
+                    classNameSpace = namespaceName;
+                    roslynSymbol.NamespaceName = namespaceName;
+                    roslynSymbol.ImplClassName = string.IsNullOrWhiteSpace(className) ? roslynSymbol.InterfaceName.Substring(1) : className;
+                    roslynSymbols.Add(roslynSymbol);
+                }
+                ctx.AddSource("ServiceCollectionExt.g.cs", SourceText.From(GenServiceAddDapr(roslynSymbols, classNameSpace), Encoding.UTF8));
             });
+
+            //context.RegisterSourceOutput(collected, (sourceProductionContext, filePaths) =>
+            //{
+            //    sourceProductionContext.AddSource("ServiceCollectionExt.g.cs", SourceText.From(GenServiceAddDapr(symbols, classNameSpace), Encoding.UTF8));
+            //});
         }
 
         private static EquatableList<InterfaceModel> GetInterfaceModels(AttributeData attribute)
@@ -262,10 +312,11 @@ namespace FluentHttp.SourceGenerator
                 //di += $"services.AddScoped<{roslynSymbol.InterfaceName}, {roslynSymbol.ImplClassName}>();" + System.Environment.NewLine;
             });
             var us = "";
-            usings.Distinct().ToList().ForEach(c =>
+            foreach (var c in usings.Distinct())
             {
                 us += $"using {c};" + DaprConst.NewLine;
-            });
+            }
+            // services.AddDefaultServiceDiscovery();
             string code =
     $@"using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -278,7 +329,6 @@ namespace {classNameSpace}
     {{
         public static IServiceCollection AddFluentHttp(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         {{
-            services.AddDefaultServiceDiscovery();
             {di}
             return services;
         }}

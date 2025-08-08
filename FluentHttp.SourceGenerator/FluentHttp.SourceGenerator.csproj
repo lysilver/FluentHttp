@@ -7,7 +7,7 @@
 		<!--<DevelopmentDependency>true</DevelopmentDependency>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<EnablePackageValidation>true</EnablePackageValidation>-->
-		<LangVersion>12</LangVersion>
+		<LangVersion>$(LangVersion)</LangVersion>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<Version>$(VersionTFMs)</Version>
@@ -32,7 +32,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<!--<None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />-->
-		<None Remove="bin\Debug\netstandard2.0\\FluentDapr.dll" />
-		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
 </Project>

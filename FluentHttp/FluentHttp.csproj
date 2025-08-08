@@ -2,7 +2,7 @@
 
   <PropertyGroup>
       <TargetFrameworks>$(ReleaseTFMs)</TargetFrameworks>
-	  <LangVersion>12</LangVersion>
+	  <LangVersion>$(LangVersion)</LangVersion>
       <Version>$(VersionTFMs)</Version>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <Description>http、source generator、roslyn、LoadBalancing</Description>

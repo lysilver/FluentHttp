@@ -1,5 +1,4 @@
-﻿using DaprDemo;
-using FluentHttp.Abstractions;
+﻿using FluentHttp.Abstractions;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;

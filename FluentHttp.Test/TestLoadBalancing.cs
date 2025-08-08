@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -23,7 +22,7 @@ namespace FluentHttp.Test
             var services = new ServiceCollection();
             services.AddLoadBalancing();
             var policies = services.BuildServiceProvider()
-                .GetServices(typeof(ILoadBalancingPolicy)) as IEnumerable<ILoadBalancingPolicy>;
+                .GetServices<ILoadBalancingPolicy>();
             _policies = policies?.ToDictionaryByUniqueId(x => x.Name) ?? throw new ArgumentNullException(nameof(policies));
             serviceInfos = new List<ServiceInfo>()
             {

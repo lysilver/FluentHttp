@@ -1,6 +1,6 @@
 using System;
 
-namespace DaprDemo
+namespace FluentHttp.Test
 {
     public class Order
     {
