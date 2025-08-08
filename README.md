@@ -236,3 +236,7 @@ sourcelink
 #### v0.0.6
 
 - [x] 文件上传
+
+#### v0.0.7
+
+- [x] IIncrementalGenerator
