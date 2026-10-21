@@ -3,7 +3,6 @@
     public class WeightedRandomLoadBalancingPolicy : ILoadBalancingPolicy
     {
         public string Name => LoadBalancingPolicies.WeightedRandom;
-        private int _totalWeight;
 
         public ServiceInfo? PickDestination(string appid, List<ServiceInfo> services)
         {
@@ -12,19 +11,23 @@
                 return null;
             }
             // 排除Weight 为 -1
-            services = services.Where(c => c.Weight > -1).ToList();
-            _totalWeight = services.Sum(i => i.Weight);
-            double randomValue = Random.Shared.NextDouble() * _totalWeight;
-            foreach (var item in services)
+            var validServices = services.Where(s => s.Weight > 0).ToList();
+            if (validServices.Count == 0)
             {
-                if (randomValue < item.Weight)
+                return null;
+            }
+            int  _totalWeight = validServices.Sum(i => i.Weight);
+            long randomValue = Random.Shared.NextInt64(_totalWeight);
+            long cumulative = 0;
+            foreach (var item in validServices)
+            {
+                cumulative += item.Weight;
+                if (randomValue < cumulative)
                 {
                     return item;
                 }
-                Interlocked.Add(ref _totalWeight, -item.Weight);
-                randomValue -= item.Weight;
             }
-            return null;
+            return validServices.Last();
         }
     }
 }
