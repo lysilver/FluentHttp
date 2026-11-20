@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using FluentHttp.Abstractions;
+﻿using FluentHttp.Abstractions;
 using Xunit;
 
 namespace FluentHttp.SourceGenerator.Test

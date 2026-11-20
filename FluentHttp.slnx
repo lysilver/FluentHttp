@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="DaprDemo/FluentHttp.Demo.csproj" />
+  <Project Path="FluentHttp.Abstractions/FluentHttp.Abstractions.csproj" />
+  <Project Path="FluentHttp.Benchmark/FluentHttp.Benchmark.csproj" />
+  <Project Path="FluentHttp.Ext/FluentHttp.Ext.csproj" />
+  <Project Path="FluentHttp.SourceGenerator.Test/FluentHttp.SourceGenerator.Test.csproj" Id="d77586b6-cf90-4464-8ef0-c27bd4fbf59a" />
+  <Project Path="FluentHttp.SourceGenerator/FluentHttp.SourceGenerator.csproj" />
+  <Project Path="FluentHttp.Test/FluentHttp.Test.csproj" />
+  <Project Path="FluentHttp/FluentHttp.csproj" />
+</Solution>

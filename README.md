@@ -54,12 +54,12 @@ public class CustContext : IContext
         }
 
         // 根据同步的id返回不同的header
-        public Task<Dictionary<string, object>> GetHeader(string appId)
+        public ValueTask ConfigureRequest(string appId, HttpRequestMessage request);
         {
-            return Task.FromResult(func.Invoke());
+            return ValueTask.CompletedTask;
         }
 
-        public JsonSerializerOptions? JsonSerializerOptions()
+        public JsonSerializerOptions? GetJsonSerializerOptions(string appId)
         {
             return null;
         }
@@ -103,7 +103,7 @@ services.TryAddSingleton<IServiceDiscovery, CustServiceDiscovery>();
 
 #### GET POST DELETE PUT PATCH
 
-- [FluentHttp(AppId = "order", Name = "OrderConsumer", Auth = "jwt")] Name-生成的类名 Auth- 验证的header取值
+- [FluentHttp(AppId = "order", Name = "OrderConsumer")] Name-生成的类名
 - [HttpGet(AppId = "order", Url = "api/v1/order/all")]
 - [HttpPost(AppId = "order", Url = "api/v1/order/all")]
 - [HttpPut(AppId = "order", Url = "api/v1/order/all")]
@@ -119,7 +119,7 @@ services.TryAddSingleton<IServiceDiscovery, CustServiceDiscovery>();
 - HttpReturnType - 返回类型（Json 默认反序列化为 TResponse，String 返回原始字符串）
 
 ```csharp
-[FluentHttp(AppId = "order", Url = "api/v1/order", Name = "OrderConsumer", Auth = "jwt")]
+[FluentHttp(AppId = "order", Url = "api/v1/order", Name = "OrderConsumer")]
 public interface IOrderConsumer
 {
     /// <summary>
@@ -239,5 +239,9 @@ sourcelink
 - [x] 文件上传
 
 #### v0.0.7
+
+- [x] IIncrementalGenerator
+
+#### v0.1.0
 
 - [x] IIncrementalGenerator

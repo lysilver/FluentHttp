@@ -9,7 +9,7 @@ namespace FluentHttp.SourceGenerator
 {
     public static class CodeAnalysisExt
     {
-        public static string GetNamedParamValue(this AttributeData attributeData, string paramName)
+        public static string? GetNamedParamValue(this AttributeData attributeData, string paramName)
         {
             var pair = attributeData.NamedArguments.FirstOrDefault(x => x.Key == paramName);
             return pair.Value.Value?.ToString();
