@@ -1,7 +1,8 @@
+using DaprDemo;
 using FluentHttp.Ext;
 using Microsoft.AspNetCore.StaticFiles;
 
-namespace DaprDemo.Controllers
+namespace FluentHttp.Demo.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
@@ -9,8 +10,8 @@ namespace DaprDemo.Controllers
     {
         private static readonly string[] Summaries = new[]
         {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+        };
 
         private readonly ILogger<OrderController> _logger;
         private readonly IHttpClientFactory clientFactory;

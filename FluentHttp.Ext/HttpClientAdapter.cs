@@ -17,53 +17,60 @@ namespace FluentHttp.Ext
             _serviceDiscovery = serviceDiscovery;
         }
 
-        public async Task<Dictionary<string, object>?> GetHeader(string appId)
+        public ValueTask ConfigureRequest(string appId, HttpRequestMessage request)
         {
-            if (_context is null)
-            {
-                return null;
-            }
-            return await _context.GetHeader(appId);
+            return _context.ConfigureRequest(appId, request);
         }
 
-        public async Task<string> GetUrl(string appId, string url)
+        public JsonSerializerOptions? GetJsonSerializerOptions(string appId)
         {
-            if (_serviceDiscovery is not null)
+            return _context.GetJsonSerializerOptions(appId);
+        }
+
+        public async ValueTask<string> GetUrl(string appId, string url)
+        {
+            if (_serviceDiscovery is null)
             {
-                var services = await _serviceDiscovery.GetUrls();
-                if (services is null)
+                return url;
+            }
+            var services = await _serviceDiscovery.GetUrls();
+            if (services is null)
+            {
+                return url;
+            }
+            if (services.TryGetValue(appId, out ClusterConfig? cluster) && cluster is not null)
+            {
+                string? baseUrl;
+                if (_chooseUrl is not null)
                 {
-                    return url;
+                    baseUrl = _chooseUrl.GetUrl(cluster);
                 }
-                if (services.TryGetValue(appId, out ClusterConfig? cluster) && cluster is not null)
+                else
                 {
-                    string? baseUrl;
-                    if (_chooseUrl is not null)
-                    {
-                        baseUrl = _chooseUrl.GetUrl(cluster);
-                    }
-                    else
-                    {
-                        baseUrl = cluster.Destinations.FirstOrDefault()?.BaseUrl;
-                    }
-                    // client.BaseAddress = new Uri(baseUrl);
-                    if (!string.IsNullOrWhiteSpace(baseUrl))
-                    {
-                        url = $"{baseUrl}/{url}";
-                    }
+                    baseUrl = cluster.Destinations?.FirstOrDefault()?.BaseUrl;
+                }
+                // client.BaseAddress = new Uri(baseUrl);
+                if (!string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    var path = url?.TrimStart('/') ?? string.Empty;
+                    url = baseUrl.TrimEnd('/') + "/" + path;
                 }
             }
             return url;
         }
 
-        public Task<Dictionary<string, ClusterConfig>?> GetUrls()
+        public ValueTask<Dictionary<string, ClusterConfig>> GetUrls()
         {
+            if (_serviceDiscovery is null)
+            {
+                return ValueTask.FromResult(new Dictionary<string, ClusterConfig>());
+            }
             return _serviceDiscovery.GetUrls();
         }
 
-        public JsonSerializerOptions? JsonSerializerOptions()
+        public JsonSerializerOptions? JsonSerializerOptions(string appId)
         {
-            return _context.JsonSerializerOptions();
+            return _context.GetJsonSerializerOptions(appId);
         }
     }
 }

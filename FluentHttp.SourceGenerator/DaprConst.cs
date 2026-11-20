@@ -12,11 +12,11 @@ namespace FluentHttp.SourceGenerator
                     { "POST", "FluentHttp.Abstractions.HttpPostAttribute" },
                     { "DELETE", "FluentHttp.Abstractions.HttpDeleteAttribute" },
                     { "PUT", "FluentHttp.Abstractions.HttpPutAttribute" },
+                    { "PATCH", "FluentHttp.Abstractions.HttpPatchAttribute" },
                     { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" },
                     { "FilePath","FluentHttp.Abstractions.FilePathVariableAttribute" },
                     { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" },
                     { "HttpFileUploadStream","FluentHttp.Abstractions.HttpFileUploadStreamAttribute" },
-                    { "Patch","FluentHttp.Abstractions.HttpPatchAttribute" },
                     { "HttpResponseMessage","FluentHttp.Abstractions.HttpResponseMessageAttribute" }
                 };
 
@@ -32,11 +32,13 @@ namespace FluentHttp.SourceGenerator
 
         public static readonly string Url = "Url";
 
-        public static readonly string ReturnString = "ReturnString";
+        public static readonly string HttpReturnType = "HttpReturnType";
 
         public static readonly string Name = "Name";
 
         public static readonly string Auth = "Auth";
+
+        public static readonly string ClientName = "ClientName";
 
         public static readonly string UrlPrefix = "/";
 

@@ -5,8 +5,8 @@
 /// </summary>
 namespace FluentHttp.Abstractions
 {
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public class PathVariableAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class PathVariableAttribute : Attribute
     {
     }
 }

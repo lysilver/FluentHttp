@@ -115,7 +115,8 @@ services.TryAddSingleton<IServiceDiscovery, CustServiceDiscovery>();
 - [PathVariable]-url path变量
 - AppId-服务的唯一名称
 - Url - url
-- ReturnString - 返回string 类型
+- ReturnString - 返回string 类型（已废弃，请使用 HttpReturnType = HttpReturnType.String）
+- HttpReturnType - 返回类型（Json 默认反序列化为 TResponse，String 返回原始字符串）
 
 ```csharp
 [FluentHttp(AppId = "order", Url = "api/v1/order", Name = "OrderConsumer", Auth = "jwt")]
@@ -145,7 +146,7 @@ public interface IOrderConsumer
     [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> GetOrderById([PathVariable] int id);
 
-    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", ReturnString = true)]
+    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", HttpReturnType = HttpReturnType.String)]
     Task<string> GetOrderByIdToString([PathVariable] int id);
 
     /// <summary>

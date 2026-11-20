@@ -1,7 +1,12 @@
 ﻿namespace FluentHttp.Abstractions
 {
-    public enum HttpMethodEnum
+    public enum HttpMethodType
     {
-        Post, Delete, Put, Patch, Get
+        Get,
+        Post,
+        Put,
+        Delete,
+        Patch,
+        Head
     }
 }

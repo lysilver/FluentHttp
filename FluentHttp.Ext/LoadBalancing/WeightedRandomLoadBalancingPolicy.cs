@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext.LoadBalancing
 {
-    public class WeightedRandomLoadBalancingPolicy : ILoadBalancingPolicy
+    public sealed class WeightedRandomLoadBalancingPolicy : ILoadBalancingPolicy
     {
         public string Name => LoadBalancingPolicies.WeightedRandom;
 

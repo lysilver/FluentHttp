@@ -6,7 +6,7 @@ namespace FluentHttp.Abstractions
     public class FluentDaprRuntime
     {
         private static readonly Lazy<FluentDaprRuntime> lazy =
-        new Lazy<FluentDaprRuntime>(() => new FluentDaprRuntime());
+            new(() => new FluentDaprRuntime());
 
         private static Dictionary<string, Func<Dictionary<string, object>>> keys = new Dictionary<string, Func<Dictionary<string, object>>>();
 

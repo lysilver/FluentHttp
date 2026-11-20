@@ -2,6 +2,15 @@
 
 namespace FluentHttp.Abstractions
 {
+
+    public enum HttpReturnType
+    {
+        Json,           // 默认：反序列化为 TResponse
+        String,         // 返回原始字符串
+        ResponseMessage,// 返回 HttpResponseMessage
+        Stream          // 返回 Stream
+    }
+
     public static class DaprConst
     {
         public static readonly Dictionary<string, string> HttpMethod = new Dictionary<string, string>

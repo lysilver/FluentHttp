@@ -11,7 +11,6 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using YL.Extensions.DependencyInjection;
 
 namespace FluentHttp.Test
 {
@@ -38,7 +37,6 @@ namespace FluentHttp.Test
             httpClientFactory = (IHttpClientFactory)serviceProvider.GetRequiredService(typeof(IHttpClientFactory));
             orderConsumer = (IOrderConsumer)serviceProvider.GetRequiredService(typeof(IOrderConsumer));
             context = (IContext)serviceProvider.GetRequiredService(typeof(IContext));
-            context.GetHeader("order");
             orderFileConsumer = (IOrderFileConsumer)serviceProvider.GetRequiredService(typeof(IOrderFileConsumer));
             var clusters = configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
         }
@@ -96,7 +94,7 @@ namespace FluentHttp.Test
                 Date = DateTime.Now
             };
             var responseMessage = await orderConsumer.CreateOrder_2(order);
-            var res = await responseMessage.Content.ReadFromJsonAsync<Order>();
+            var res = await responseMessage.Content.ReadFromJsonAsync<Order>(cancellationToken: TestContext.Current.CancellationToken);
             Assert.True(responseMessage.IsSuccessStatusCode);
             Assert.NotNull(res);
             Assert.Equal(order.Id, res.Id);
@@ -197,9 +195,9 @@ namespace FluentHttp.Test
             var url = "http://localhost:9000/api/v1/order/multi-file";
             var byteContent = new StreamContent(File.Open(file, FileMode.Open, FileAccess.Read));
             multipartFormContent.Add(byteContent, name: "files", fileName: file);
-            var response = await httpClient.PostAsync(url, multipartFormContent);
+            var response = await httpClient.PostAsync(url, multipartFormContent, TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
-            var res = await response.Content.ReadFromJsonAsync<Order>();
+            var res = await response.Content.ReadFromJsonAsync<Order>(TestContext.Current.CancellationToken);
             Assert.Equal(0, res?.Id);
         }
 
@@ -218,8 +216,8 @@ namespace FluentHttp.Test
                 scontent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
                 content.Add(scontent, "files", fileName);
             }
-            var response = await httpClient.PostAsync(url, content);
-            var res = await response.Content.ReadFromJsonAsync<Order>();
+            var response = await httpClient.PostAsync(url, content, TestContext.Current.CancellationToken);
+            var res = await response.Content.ReadFromJsonAsync<Order>(TestContext.Current.CancellationToken);
             Assert.Equal(0, res?.Id);
         }
 

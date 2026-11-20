@@ -1,21 +1,19 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Options;
 
 namespace FluentHttp.Ext
 {
-    public class DefaultServiceDiscovery : IServiceDiscovery
+    public sealed class DefaultServiceDiscovery : IServiceDiscovery
     {
-        private readonly string Node = "YL:FluentHttp";
-        private readonly IConfiguration _configuration;
+        private readonly Dictionary<string, ClusterConfig> _configs;
 
-        public DefaultServiceDiscovery(IConfiguration configuration)
+        public DefaultServiceDiscovery(IOptions<Dictionary<string, ClusterConfig>> options)
         {
-            _configuration = configuration;
+            _configs = options.Value;
         }
 
-        public Task<Dictionary<string, ClusterConfig>?> GetUrls()
+        public ValueTask<Dictionary<string, ClusterConfig>> GetUrls()
         {
-            var services = _configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
-            return Task.FromResult(services);
+            return ValueTask.FromResult(_configs);
         }
     }
 }

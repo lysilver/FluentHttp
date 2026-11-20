@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using YL.Extensions.DependencyInjection;
 
 namespace FluentHttp.Test
 {
@@ -24,8 +23,8 @@ namespace FluentHttp.Test
             var policies = services.BuildServiceProvider()
                 .GetServices<ILoadBalancingPolicy>();
             _policies = policies?.ToDictionaryByUniqueId(x => x.Name) ?? throw new ArgumentNullException(nameof(policies));
-            serviceInfos = new List<ServiceInfo>()
-            {
+            serviceInfos =
+            [
                 new ServiceInfo
                 {
                     BaseUrl="http://localhost:9000",
@@ -40,7 +39,7 @@ namespace FluentHttp.Test
                     BaseUrl="http://localhost:9003",
                     Weight = 3
                 }
-            };
+            ];
         }
 
         [Theory]
@@ -73,13 +72,13 @@ namespace FluentHttp.Test
             {
                 AppId = "order",
                 LoadBalancingPolicy = LoadBalancingPolicies.Random,
-                Destinations = new List<ServiceInfo>()
-                {
+                Destinations =
+                [
                     new ServiceInfo
                     {
                         BaseUrl="",
                     },
-                }
+                ]
             };
             var policy = _policies.GetRequiredServiceById(LoadBalancingPolicies.RoundRobin);
             var list = new List<string>();
@@ -106,7 +105,7 @@ namespace FluentHttp.Test
             var policy = _policies.GetRequiredServiceById(LoadBalancingPolicies.WeightedRandom);
             var tasks = new List<Task>();
             int count = 0;
-            ConcurrentStack<string> list = new ConcurrentStack<string>();
+            ConcurrentStack<string> list = new();
             for (int i = 0; i < 100; i++)
             {
                 tasks.Add(Task.Run(() =>
@@ -117,14 +116,14 @@ namespace FluentHttp.Test
                         list.Push(url);
                     }
                     Interlocked.Increment(ref count);
-                }));
+                }, TestContext.Current.CancellationToken));
             }
             await Task.WhenAll([.. tasks]);
             var asd = list.GroupBy(c => c).ToList();
             tasks.Clear();
             Interlocked.Exchange(ref count, 0);
             var atomic = new AtomicCounterWeightedRandom<ServiceInfo>();
-            ConcurrentStack<string> list2 = new ConcurrentStack<string>();
+            ConcurrentStack<string> list2 = new();
             serviceInfos.ForEach(c =>
             {
                 atomic.Add(c, c.Weight);
@@ -139,7 +138,7 @@ namespace FluentHttp.Test
                             list2.Push(url);
                         }
                         Interlocked.Increment(ref count);
-                    }));
+                    }, TestContext.Current.CancellationToken));
             }
             await Task.WhenAll([.. tasks]);
         }

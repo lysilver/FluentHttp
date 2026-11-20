@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -45,6 +46,25 @@ namespace FluentHttp.SourceGenerator
                   .SelectMany(x => x.NamedArguments)
                   .ToDictionary(x => x.Key, x => (string)x.Value.Value);
             return metaData;
+        }
+
+        public static List<string> GetUsings(this INamedTypeSymbol symbol)
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+            {
+                if (syntaxRef.GetSyntax() is not TypeDeclarationSyntax typeSyntax)
+                {
+                    continue;
+                }
+                var root = typeSyntax.SyntaxTree.GetCompilationUnitRoot();
+                var arr = GetUsings(root);
+                foreach (var item in arr)
+                {
+                    result.Add(item);
+                }
+            }
+            return result.ToList();
         }
     }
 }

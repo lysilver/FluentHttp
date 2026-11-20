@@ -2,6 +2,6 @@
 {
     public interface IServiceDiscovery
     {
-        Task<Dictionary<string, ClusterConfig>?> GetUrls();
+        ValueTask<Dictionary<string, ClusterConfig>> GetUrls();
     }
 }

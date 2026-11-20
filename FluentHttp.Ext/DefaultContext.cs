@@ -4,25 +4,17 @@ namespace FluentHttp.Ext
 {
     public class DefaultContext : IContext
     {
-        private readonly Func<Dictionary<string, object>> func = () =>
-        {
-            Dictionary<string, object> keys = new()
-                {
-                    { "trace_id", Guid.NewGuid().ToString()}
-                };
-            return keys;
-        };
 
         public DefaultContext()
         {
         }
 
-        public Task<Dictionary<string, object>> GetHeader(string appId)
+        public ValueTask ConfigureRequest(string appId, HttpRequestMessage request)
         {
-            return Task.FromResult(func.Invoke());
+            return ValueTask.CompletedTask;
         }
 
-        public JsonSerializerOptions? JsonSerializerOptions()
+        public JsonSerializerOptions? GetJsonSerializerOptions(string appId)
         {
             return null;
         }

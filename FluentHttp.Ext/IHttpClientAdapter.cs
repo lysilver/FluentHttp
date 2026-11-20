@@ -5,27 +5,21 @@ namespace FluentHttp.Ext
     public interface IHttpClientAdapter
     {
         /// <summary>
-        /// 获取header
-        /// 用于服务之间传递header
-        /// string basic = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(options.User +":"+ options.Pwd));
-        /// Authorization
-        /// Authorization 会从Auth对应的value获取
-        /// </summary>
-        /// <returns></returns>
-        Task<Dictionary<string, object>?> GetHeader(string appId);
-
-        /// <summary>
         /// url
         /// </summary>
         /// <returns></returns>
-        Task<Dictionary<string, ClusterConfig>?> GetUrls();
+        ValueTask<Dictionary<string, ClusterConfig>> GetUrls();
+
+        ValueTask<string> GetUrl(string appId, string url);
+
+        ValueTask ConfigureRequest(string appId, HttpRequestMessage request);
 
         /// <summary>
-        /// JsonSerializerOptions 请使用单例构建
+        /// 获取指定服务的 JSON 序列化配置
         /// </summary>
+        /// <param name="appId"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        JsonSerializerOptions? JsonSerializerOptions();
-
-        Task<string> GetUrl(string appId, string url);
+        JsonSerializerOptions? GetJsonSerializerOptions(string appId);
     }
 }

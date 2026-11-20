@@ -7,20 +7,14 @@ namespace FluentHttp.Ext
     /// </summary>
     public interface IContext
     {
-        /// <summary>
-        /// 获取header
-        /// 用于服务之间传递header
-        /// string basic = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(options.User +":"+ options.Pwd));
-        /// Authorization
-        /// Authorization 会从Auth对应的value获取
-        /// </summary>
-        /// <returns></returns>
-        Task<Dictionary<string, object>> GetHeader(string appId);
+        ValueTask ConfigureRequest(string appId, HttpRequestMessage request);
 
         /// <summary>
-        /// JsonSerializerOptions 请使用单例构建
+        /// 获取指定服务的 或者指定接口 JSON 序列化配置
         /// </summary>
+        /// <param name="appId"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        JsonSerializerOptions? JsonSerializerOptions();
+        JsonSerializerOptions? GetJsonSerializerOptions(string appId);
     }
 }

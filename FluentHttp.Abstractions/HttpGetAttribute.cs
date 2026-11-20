@@ -3,7 +3,7 @@
 namespace FluentHttp.Abstractions
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class HttpGetAttribute : HttpAttribute
+    public sealed class HttpGetAttribute : HttpAttribute
     {
     }
 }

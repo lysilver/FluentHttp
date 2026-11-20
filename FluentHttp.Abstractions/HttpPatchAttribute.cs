@@ -3,7 +3,8 @@
 namespace FluentHttp.Abstractions
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class HttpPatchAttribute : HttpAttribute
+    public sealed class HttpPatchAttribute : HttpAttribute
     {
+        public bool UseJsonPatch { get; set; } = true;
     }
 }

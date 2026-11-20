@@ -10,7 +10,7 @@ namespace FluentHttp.Abstractions
     /// 多文件 List<FileStream>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class HttpFileUploadStreamAttribute : Attribute
+    public sealed class HttpFileUploadStreamAttribute : Attribute
     {
     }
 }

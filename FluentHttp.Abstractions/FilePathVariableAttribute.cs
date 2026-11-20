@@ -6,7 +6,7 @@
 namespace FluentHttp.Abstractions
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class FilePathVariableAttribute : Attribute
+    public sealed class FilePathVariableAttribute : Attribute
     {
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext
 {
-    public class ServiceInfo
+    public sealed class ServiceInfo
     {
         /// <summary>
         /// url
@@ -13,5 +13,13 @@
         {
             return $"Weight:{Weight},BaseUrl:{BaseUrl}";
         }
+    }
+
+    public enum HttpContentType
+    {
+        Json,
+        JsonPatch,
+        FormUrlEncoded,
+        MultipartFormData
     }
 }

@@ -55,6 +55,11 @@ namespace FluentHttp.SourceGenerator
             get; set;
         }
 
+        public string ClientName
+        {
+            get; set;
+        }
+
         /// <summary>
         /// 接口信息
         /// </summary>
@@ -75,7 +80,7 @@ namespace FluentHttp.SourceGenerator
 
         public string GetUrl(string url)
         {
-            url ??= "";
+            url ??= string.Empty;
             if (!string.IsNullOrWhiteSpace(Url) && !url.StartsWith(DaprConst.UrlPrefix))
             {
                 url = Url + DaprConst.UrlPrefix + url;

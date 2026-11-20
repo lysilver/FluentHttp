@@ -2,7 +2,7 @@
 
 namespace FluentHttp.Ext.LoadBalancing
 {
-    public class RoundRobinLoadBalancingPolicy : ILoadBalancingPolicy
+    public sealed class RoundRobinLoadBalancingPolicy : ILoadBalancingPolicy
     {
         private readonly ConditionalWeakTable<string, AtomicCounter> _counters = new();
         public string Name => LoadBalancingPolicies.RoundRobin;

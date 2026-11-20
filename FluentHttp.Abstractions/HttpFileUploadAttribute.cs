@@ -11,7 +11,7 @@ namespace FluentHttp.Abstractions
     /// 多文件 List<string>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class HttpFileUploadAttribute : HttpAttribute
+    public sealed class HttpFileUploadAttribute : HttpAttribute
     {
     }
 }

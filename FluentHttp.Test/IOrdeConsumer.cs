@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FluentHttp.Test;
 
-[FluentHttp(AppId = "order", Url = "api/v1/order", Name = "OrderConsumer", Auth = "jwt")]
+[FluentHttp(AppId = "order", Url = "api/v1/order", Name = "OrderConsumer")]
 public interface IOrderConsumer
 {
     /// <summary>
@@ -14,6 +14,9 @@ public interface IOrderConsumer
     /// <returns></returns>
     [HttpGet(AppId = "order", Url = "all")]
     Task<IEnumerable<Order>> GetOrders();
+
+    [HttpGet(AppId = "order", Url = "all")]
+    ValueTask<IEnumerable<Order>> GetOrdersAsync();
 
     /// <summary>
     /// 获取所有订单
@@ -32,7 +35,7 @@ public interface IOrderConsumer
     [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> GetOrderById([PathVariable] int id);
 
-    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", ReturnString = true)]
+    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", HttpReturnType = HttpReturnType.String)]
     Task<string> GetOrderByIdToString([PathVariable] int id);
 
     /// <summary>
@@ -43,7 +46,7 @@ public interface IOrderConsumer
     [HttpPost(AppId = "order", Url = "/api/v1/order")]
     Task<Order> CreateOrder(Order order);
 
-    [HttpResponseMessage(AppId = "order", Url = "/api/v1/order", HttpMethod = HttpMethodEnum.Post)]
+    [HttpResponseMessage(AppId = "order", Url = "/api/v1/order", HttpMethod = HttpMethodType.Post)]
     Task<HttpResponseMessage> CreateOrder_2(Order order);
 
     [HttpPut(AppId = "order", Url = "/api/v1/order/{id}")]

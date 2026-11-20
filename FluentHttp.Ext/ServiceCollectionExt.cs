@@ -1,9 +1,8 @@
-﻿using FluentHttp.Ext;
-using FluentHttp.Ext.LoadBalancing;
+﻿using FluentHttp.Ext.LoadBalancing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace YL.Extensions.DependencyInjection
+namespace FluentHttp.Ext
 {
     public static partial class ServiceCollectionExt
     {
@@ -37,10 +36,17 @@ namespace YL.Extensions.DependencyInjection
 
         public static IServiceCollection AddDefaultServiceDiscovery(this IServiceCollection services)
         {
+            services.AddDefaultServiceDiscovery("YL:FluentHttp");
+            return services;
+        }
+
+        public static IServiceCollection AddDefaultServiceDiscovery(this IServiceCollection services, string node)
+        {
             if (!services.Any(x => x.ServiceType == typeof(IServiceDiscovery)))
             {
                 services.TryAddSingleton<IServiceDiscovery, DefaultServiceDiscovery>();
             }
+            services.AddOptions<Dictionary<string, ClusterConfig>>().BindConfiguration(node);
             services.AddHttpAdapter();
             return services;
         }
