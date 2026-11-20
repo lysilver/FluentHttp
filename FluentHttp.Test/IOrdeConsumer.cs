@@ -55,6 +55,9 @@ public interface IOrderConsumer
     [HttpPatch(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> UpdatePatchOrder([PathVariable] int id, Order order);
 
+    [HttpPatch(AppId = "order", Url = "/api/v1/order/{id}", UseJsonPatch = false)]
+    Task<Order> UpdatePatchOrderJson([PathVariable] int id, Order order);
+
     [HttpDelete(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> DeleteOrder([PathVariable] int id);
 

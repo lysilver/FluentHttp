@@ -115,6 +115,10 @@ namespace FluentHttp.SourceGenerator
             var methodUrl = GetNamedArgumentValue(method, DaprConst.Url);
             var httpReturnType = GetNamedArgumentValue(method, DaprConst.HttpReturnType);
             var httpMethodValue = GetNamedArgumentValue(method, DaprConst.MemberHttpMethod);
+            var useJsonPatch = GetNamedArgumentValue(method, DaprConst.UseJsonPatch);
+            var patchContentTypeArg = string.Equals(useJsonPatch, "False", StringComparison.OrdinalIgnoreCase)
+                ? ", contentType: HttpContentType.Json"
+                : string.Empty;
 
             var appId = string.IsNullOrWhiteSpace(methodAppId) ? interfaceAppId : methodAppId;
             var url = new RoslynSymbol { Url = interfaceUrl }.GetUrl(methodUrl ?? string.Empty);
@@ -161,7 +165,7 @@ namespace FluentHttp.SourceGenerator
                 }
                 else
                 {
-                    b.WithLine(GenerateCall(httpMethodName, httpMethodValue, returnArg, bodyParam, parameters, appIdExpr, urlArg));
+                    b.WithLine(GenerateCall(httpMethodName, httpMethodValue, returnArg, bodyParam, parameters, appIdExpr, urlArg, patchContentTypeArg));
                     b.WithLine("return res!;");
                 }
             });
@@ -187,7 +191,7 @@ namespace FluentHttp.SourceGenerator
             };
         }
 
-        private static string GenerateCall(string httpMethodName, string httpMethodValue, string returnArg, GeneratedParam bodyParam, List<GeneratedParam> parameters, string appIdExpr, string urlArg)
+        private static string GenerateCall(string httpMethodName, string httpMethodValue, string returnArg, GeneratedParam bodyParam, List<GeneratedParam> parameters, string appIdExpr, string urlArg, string patchContentTypeArg)
         {
             return httpMethodName switch
             {
@@ -202,8 +206,8 @@ namespace FluentHttp.SourceGenerator
                     : $"var res = await client.HttpPut<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null);",
 
                 "Patch" => bodyParam is not null
-                    ? $"var res = await client.HttpPatch<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name});"
-                    : $"var res = await client.HttpPatch<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null);",
+                    ? $"var res = await client.HttpPatch<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{patchContentTypeArg});"
+                    : $"var res = await client.HttpPatch<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{patchContentTypeArg});",
 
                 "DELETE" => bodyParam is not null
                     ? $"var res = await client.HttpDelete<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name});"

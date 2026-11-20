@@ -20,6 +20,7 @@ namespace FluentHttp.SourceGenerator
 
         public static List<string> GetUsings(this CompilationUnitSyntax root) => root.ChildNodes()
                .OfType<UsingDirectiveSyntax>()
+               .Where(n => n.Name is not null)
                .Select(n => n.Name.ToString())
                .ToList();
 

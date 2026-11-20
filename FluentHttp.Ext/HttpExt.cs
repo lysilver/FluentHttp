@@ -90,7 +90,7 @@ namespace FluentHttp.Ext
 
         public static async Task<TResponse?> HttpPatch<TResponse, TRequest>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, TRequest data,
-            CancellationToken cancellationToken = default)
+            HttpContentType contentType = HttpContentType.JsonPatch, CancellationToken cancellationToken = default)
         {
             var options = clientAdapter.GetJsonSerializerOptions(appId);
             using var response = await client.HttpResponseMessageAsync<TRequest>(
@@ -100,7 +100,7 @@ namespace FluentHttp.Ext
                HttpMethod.Patch,
                data: data,
                options: options,
-               contentType: HttpContentType.JsonPatch,
+               contentType: contentType,
                cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<TResponse>(
@@ -232,8 +232,9 @@ namespace FluentHttp.Ext
                 Content = content
             };
             await clientAdapter.ConfigureRequest(appId, request).ConfigureAwait(false);
-            using var res = await client.SendAsync(request, cancellationToken);
-            return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken);
+            using var res = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            res.EnsureSuccessStatusCode();
+            return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
@@ -265,7 +266,8 @@ namespace FluentHttp.Ext
             };
             await clientAdapter.ConfigureRequest(appId, request).ConfigureAwait(false);
             using var res = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken);
+            res.EnsureSuccessStatusCode();
+            return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
@@ -292,8 +294,9 @@ namespace FluentHttp.Ext
                 Content = content
             };
             await clientAdapter.ConfigureRequest(appId, request).ConfigureAwait(false);
-            using var res = await client.SendAsync(request, cancellationToken);
-            return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken);
+            using var res = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            res.EnsureSuccessStatusCode();
+            return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task DownloadRangeChunkAsync<TRequest>(this HttpClient client,

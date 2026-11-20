@@ -29,7 +29,7 @@ namespace FluentHttp.Ext
 
         public async ValueTask<string> GetUrl(string appId, string url)
         {
-            if (_serviceDiscovery is null)
+            if (string.IsNullOrWhiteSpace(appId) || _serviceDiscovery is null)
             {
                 return url;
             }
@@ -50,10 +50,10 @@ namespace FluentHttp.Ext
                     baseUrl = cluster.Destinations?.FirstOrDefault()?.BaseUrl;
                 }
                 // client.BaseAddress = new Uri(baseUrl);
-                if (!string.IsNullOrWhiteSpace(baseUrl))
+                if (!string.IsNullOrWhiteSpace(baseUrl) && Uri.TryCreate(baseUrl, UriKind.Absolute, out _))
                 {
                     var path = url?.TrimStart('/') ?? string.Empty;
-                    url = baseUrl.TrimEnd('/') + "/" + path;
+                    url = baseUrl.TrimEnd('/') + (path.Length == 0 ? string.Empty : "/" + path);
                 }
             }
             return url;

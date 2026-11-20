@@ -239,7 +239,7 @@ namespace FluentHttp.SourceGenerator.Core
         }
 
         public AdvancedExtensionBuilder WithMethod(string signature, Action<AdvancedExtensionBuilder> body) =>
-        WithBlock(signature, body);
+            WithBlock(signature, body);
 
         public AdvancedExtensionBuilder WithMethod(bool flag, string signature, Action<AdvancedExtensionBuilder> body)
         {

@@ -73,6 +73,9 @@ namespace FluentHttp.SourceGenerator.Test
                     [HttpPatch(AppId = "order", Url = "/api/v1/order/{id}")]
                     Task<Order> UpdatePatchOrder([PathVariable] int id, Order order);
 
+                    [HttpPatch(AppId = "order", Url = "/api/v1/order/{id}", UseJsonPatch = false)]
+                    Task<Order> UpdatePatchOrderJson([PathVariable] int id, Order order);
+
                     [HttpDelete(AppId = "order", Url = "/api/v1/order/{id}")]
                     Task<Order> DeleteOrder([PathVariable] int id);
 
@@ -97,6 +100,7 @@ namespace FluentHttp.SourceGenerator.Test
             Assert.Contains("return await res.Content.ReadAsStringAsync();", code);
             Assert.Contains("client.HttpGet<Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\")", code);
             Assert.Contains("client.HttpPost<Order, Order>(_clientAdapter, \"order\", \"api/v1/order\", order)", code);
+            Assert.Contains("client.HttpPatch<Order, Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\", order, contentType: HttpContentType.Json)", code);
             Assert.Contains("client.HttpResponseMessageAsync<Order>(_clientAdapter, \"order\", \"api/v1/order\", HttpMethod.Post, order)", code);
             Assert.Contains("client.HttpDelete<Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\")", code);
             Assert.Contains("client.UploadFile<Order>(_clientAdapter, \"order\", \"api/v1/order/single-file\", filepath)", code);

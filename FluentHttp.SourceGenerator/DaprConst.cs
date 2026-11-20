@@ -40,6 +40,8 @@ namespace FluentHttp.SourceGenerator
 
         public static readonly string ClientName = "ClientName";
 
+        public static readonly string UseJsonPatch = "UseJsonPatch";
+
         public static readonly string UrlPrefix = "/";
 
         public static readonly string MemberHttpMethod = "HttpMethod";
