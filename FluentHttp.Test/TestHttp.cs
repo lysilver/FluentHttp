@@ -72,6 +72,23 @@ namespace FluentHttp.Test
         }
 
         [Fact]
+        public async Task TestGetOrdersWithToken()
+        {
+            var res = await orderConsumer.GetOrdersWithToken(TestContext.Current.CancellationToken);
+            Assert.Equal(5, res.Count());
+        }
+
+        [Fact]
+        public async Task TestGetOrdersStream()
+        {
+            using var stream = await orderConsumer.GetOrdersStream();
+            Assert.NotNull(stream);
+            using var reader = new StreamReader(stream);
+            var text = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            Assert.Contains("id", text);
+        }
+
+        [Fact]
         public async Task TestPost()
         {
             var order = new Order

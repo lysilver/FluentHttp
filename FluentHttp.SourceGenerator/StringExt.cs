@@ -10,7 +10,7 @@ namespace FluentHttp.SourceGenerator
             var properties = from p in valuePairs
                              where p.Value != null
                              select p.Key + "=" + p.Value.ToString() + "";
-            return string.Join("&", properties.ToArray());
+            return string.Join("&", [.. properties]);
         }
     }
 }

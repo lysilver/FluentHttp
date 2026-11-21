@@ -18,7 +18,9 @@ namespace FluentHttp.SourceGenerator.Test
             string source = """
                 using FluentHttp.Abstractions;
                 using System.Collections.Generic;
+                using System.IO;
                 using System.Net.Http;
+                using System.Threading;
                 using System.Threading.Tasks;
 
                 namespace FluentHttp.Test;
@@ -36,14 +38,26 @@ namespace FluentHttp.SourceGenerator.Test
                     [HttpGet(AppId = "order", Url = "all")]
                     ValueTask<IEnumerable<Order>> GetOrdersAsync();
 
-                    /// <summary>
-                    /// 获取所有订单
-                    /// 接口上的AppId优先级低于方法上的
-                    /// 前缀/开头的Url不会拼接接口上的Url
-                    /// </summary>
-                    /// <returns></returns>
                     [HttpGet(Url = "/api/v1/order/all")]
                     Task<IEnumerable<Order>> GetAllOrders();
+
+                    [HttpGet(AppId = "order", Url = "all")]
+                    Task<IEnumerable<Order>> GetOrdersWithToken(CancellationToken cancellationToken = default);
+
+                    [HttpGet(AppId = "order", Url = "all", HttpReturnType = HttpReturnType.String)]
+                    Task<string> GetOrdersStringWithToken(CancellationToken cancellationToken = default);
+
+                    [HttpGet(AppId = "order", Url = "all", HttpReturnType = HttpReturnType.Stream)]
+                    Task<Stream> GetOrderStream();
+
+                    [HttpPut(AppId = "order", Url = "/api/v1/order/{id}", HttpReturnType = HttpReturnType.Stream)]
+                    Task<Stream> UpdateOrderStream([PathVariable] int id, Order order, CancellationToken cancellationToken = default);
+
+                    [HttpDelete(AppId = "order", Url = "/api/v1/order/{id}", HttpReturnType = HttpReturnType.Stream)]
+                    Task<Stream> DeleteOrderStream([PathVariable] int id);
+
+                    [HttpFileUpload(AppId = "order", Url = "/api/v1/order/single-file", HttpReturnType = HttpReturnType.Stream)]
+                    Task<Stream> UploadFileStream([FilePathVariable] string filepath);
 
                     /// <summary>
                     /// 根据id获取订单
@@ -52,6 +66,9 @@ namespace FluentHttp.SourceGenerator.Test
                     /// <returns></returns>
                     [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
                     Task<Order> GetOrderById([PathVariable] int id);
+
+                    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
+                    Task<Order> GetOrderByIdWithCode([PathVariable] int id, int code);
 
                     [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", HttpReturnType = HttpReturnType.String)]
                     Task<string> GetOrderByIdToString([PathVariable] int id);
@@ -63,6 +80,9 @@ namespace FluentHttp.SourceGenerator.Test
                     /// <returns></returns>
                     [HttpPost(AppId = "order", Url = "/api/v1/order")]
                     Task<Order> CreateOrder(Order order);
+
+                    [HttpPost(AppId = "order", Url = "/api/v1/order", HttpReturnType = HttpReturnType.Stream)]
+                    Task<Stream> CreateOrderStream(Order order);
 
                     [HttpResponseMessage(AppId = "order", Url = "/api/v1/order", HttpMethod = HttpMethodType.Post)]
                     Task<HttpResponseMessage> CreateOrder_2(Order order);
@@ -93,17 +113,30 @@ namespace FluentHttp.SourceGenerator.Test
             var code = string.Join(Environment.NewLine, result.GeneratedTrees.Select(static t => t.GetText().ToString()));
 
             Assert.Contains("public partial class OrderConsumer : IOrderConsumer", code);
-            Assert.Contains("using var client = _clientFactory.CreateClient(\"OrderClient\");", code);
+            Assert.Contains("var client = _clientFactory.CreateClient(\"OrderClient\");", code);
             Assert.Contains("client.HttpGet<IEnumerable<Order>>(_clientAdapter, \"order\", \"api/v1/order/all\")", code);
             Assert.Contains("public async ValueTask<IEnumerable<Order>> GetOrdersAsync()", code);
             Assert.Contains("using var res = await client.HttpResponseMessageAsync<object>(_clientAdapter, \"order\", $\"api/v1/order/{id}\", HttpMethod.Get, null);", code);
             Assert.Contains("return await res.Content.ReadAsStringAsync();", code);
             Assert.Contains("client.HttpGet<Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\")", code);
+            Assert.Contains("client.HttpGet<Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}?code={code}\")", code);
+            Assert.DoesNotContain("var query = string.Join", code);
             Assert.Contains("client.HttpPost<Order, Order>(_clientAdapter, \"order\", \"api/v1/order\", order)", code);
             Assert.Contains("client.HttpPatch<Order, Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\", order, contentType: HttpContentType.Json)", code);
             Assert.Contains("client.HttpResponseMessageAsync<Order>(_clientAdapter, \"order\", \"api/v1/order\", HttpMethod.Post, order)", code);
             Assert.Contains("client.HttpDelete<Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\")", code);
             Assert.Contains("client.UploadFile<Order>(_clientAdapter, \"order\", \"api/v1/order/single-file\", filepath)", code);
+            Assert.Contains("Task<Stream> GetOrderStream()", code);
+            Assert.Contains("client.HttpGetStream(_clientAdapter, \"order\", \"api/v1/order/all\")", code);
+            Assert.Contains("Task<Stream> CreateOrderStream(Order order)", code);
+            Assert.Contains("client.HttpPostStream<Order>(_clientAdapter, \"order\", \"api/v1/order\", order)", code);
+            Assert.Contains("Task<IEnumerable<Order>> GetOrdersWithToken(CancellationToken cancellationToken)", code);
+            Assert.Contains("client.HttpGet<IEnumerable<Order>>(_clientAdapter, \"order\", \"api/v1/order/all\", cancellationToken: cancellationToken)", code);
+            Assert.Contains("using var res = await client.HttpResponseMessageAsync<object>(_clientAdapter, \"order\", \"api/v1/order/all\", HttpMethod.Get, null, cancellationToken: cancellationToken);", code);
+            Assert.Contains("return await res.Content.ReadAsStringAsync(cancellationToken);", code);
+            Assert.Contains("client.HttpSendStream<Order>(_clientAdapter, \"order\", $\"api/v1/order/{id}\", HttpMethod.Put, order, cancellationToken: cancellationToken)", code);
+            Assert.Contains("client.HttpSendStream<object>(_clientAdapter, \"order\", $\"api/v1/order/{id}\", HttpMethod.Delete, null)", code);
+            Assert.Contains("Task.FromException<Stream>(new NotSupportedException(\"HttpReturnType.Stream is not supported for HttpFileUpload.\"))", code);
             Assert.Contains("services.TryAdd(ServiceDescriptor.Describe(typeof(FluentHttp.Test.IOrderConsumer), typeof(FluentHttp.Test.OrderConsumer), lifetime))", code);
         }
     }

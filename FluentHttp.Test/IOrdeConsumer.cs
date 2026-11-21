@@ -1,6 +1,8 @@
 ﻿using FluentHttp.Abstractions;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluentHttp.Test;
@@ -17,6 +19,12 @@ public interface IOrderConsumer
 
     [HttpGet(AppId = "order", Url = "all")]
     ValueTask<IEnumerable<Order>> GetOrdersAsync();
+
+    [HttpGet(AppId = "order", Url = "all")]
+    Task<IEnumerable<Order>> GetOrdersWithToken(CancellationToken cancellationToken = default);
+
+    [HttpGet(AppId = "order", Url = "all", HttpReturnType = HttpReturnType.Stream)]
+    Task<Stream> GetOrdersStream();
 
     /// <summary>
     /// 获取所有订单
@@ -35,6 +43,9 @@ public interface IOrderConsumer
     [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> GetOrderById([PathVariable] int id);
 
+    [HttpGet(AppId = "order", Url = "/api/v1/order/{id}")]
+    Task<Order> GetOrderById([PathVariable] int id, int code);
+
     [HttpGet(AppId = "order", Url = "/api/v1/order/{id}", HttpReturnType = HttpReturnType.String)]
     Task<string> GetOrderByIdToString([PathVariable] int id);
 
@@ -45,6 +56,9 @@ public interface IOrderConsumer
     /// <returns></returns>
     [HttpPost(AppId = "order", Url = "/api/v1/order")]
     Task<Order> CreateOrder(Order order);
+
+    [HttpPost(AppId = "order", Url = "/api/v1/order", HttpReturnType = HttpReturnType.Stream)]
+    Task<Stream> CreateOrderStream(Order order);
 
     [HttpResponseMessage(AppId = "order", Url = "/api/v1/order", HttpMethod = HttpMethodType.Post)]
     Task<HttpResponseMessage> CreateOrder_2(Order order);

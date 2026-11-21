@@ -119,12 +119,17 @@ namespace FluentHttp.SourceGenerator
             var patchContentTypeArg = string.Equals(useJsonPatch, "False", StringComparison.OrdinalIgnoreCase)
                 ? ", contentType: HttpContentType.Json"
                 : string.Empty;
+            var isStreamReturn = IsStreamReturn(httpReturnType);
 
             var appId = string.IsNullOrWhiteSpace(methodAppId) ? interfaceAppId : methodAppId;
             var url = new RoslynSymbol { Url = interfaceUrl }.GetUrl(methodUrl ?? string.Empty);
 
             var parameters = GetParameters(methodSyntax, method);
-            var bodyParam = parameters.FirstOrDefault(p => !p.IsPath);
+            var cancellationTokenParam = parameters.FirstOrDefault(p => p.IsCancellationToken);
+            var cancellationTokenArg = cancellationTokenParam is not null
+                ? $", cancellationToken: {cancellationTokenParam.Name}"
+                : string.Empty;
+            var bodyParam = parameters.FirstOrDefault(p => !p.IsPath && !p.IsCancellationToken);
             var httpMethodName = GetHttpMethodName(method);
             var returnArg = GetReturnTypeArgument(methodSyntax);
             var signature = string.Join(", ", parameters.Select(p => $"{p.Type} {p.Name}"));
@@ -134,38 +139,49 @@ namespace FluentHttp.SourceGenerator
                 : $"_clientFactory.CreateClient(\"{EscapeStringLiteral(interfaceClientName)}\")";
             var appIdExpr = $"\"{EscapeStringLiteral(appId ?? string.Empty)}\"";
             var hasPathParams = parameters.Any(p => p.IsPath);
-            var urlExpr = hasPathParams
-                ? "$\"" + EscapeStringLiteral(url) + "\""
-                : "\"" + EscapeStringLiteral(url) + "\"";
             var queryParameters = httpMethodName == "GET"
-                ? parameters.Where(p => !p.IsPath && !p.IsFilePath).ToList()
+                ? parameters.Where(p => !p.IsPath && !p.IsFilePath && !p.IsCancellationToken).ToList()
                 : [];
-            var hasUrlVariable = queryParameters.Count > 0;
-            var urlArg = hasUrlVariable ? "url" : urlExpr;
+            var urlLiteral = EscapeStringLiteral(url);
+            if (queryParameters.Count > 0)
+            {
+                var query = string.Join("&", queryParameters.Select(p => $"{p.Name}={{{p.Name}}}"));
+                urlLiteral += (urlLiteral.Contains('?') ? "&" : "?") + query;
+            }
+            var urlExpr = hasPathParams || queryParameters.Count > 0
+                ? "$\"" + urlLiteral + "\""
+                : "\"" + urlLiteral + "\"";
+            var urlArg = urlExpr;
 
             builder.WithBlock($"public async {returnType} {methodSyntax.Identifier.Text}({signature})", b =>
             {
-                b.WithLine($"using var client = {createClientCall};");
-
-                if (hasUrlVariable)
-                {
-                    b.WithLine($"var url = {urlExpr};");
-                    var queryItems = string.Join(", ", queryParameters.Select(p => $"\"{p.Name}=\" + {p.Name}"));
-                    b.WithLine($"var query = string.Join(\"&\", new[] {{ {queryItems} }});")
-                     .WithLine($"url += string.IsNullOrEmpty(query) ? \"\" : \"?\" + query;");
-                }
+                b.WithLine($"var client = {createClientCall};");
 
                 if (IsStringReturn(httpReturnType))
                 {
                     var httpMethodLiteral = GetHttpMethodLiteral(httpMethodName);
                     var bodyArg = bodyParam?.Name ?? "null";
-                    b.WithLine($"using var res = await client.HttpResponseMessageAsync<object>(_clientAdapter, {appIdExpr}, {urlArg}, {httpMethodLiteral}, {bodyArg});")
+                    var readAsStringArg = cancellationTokenParam?.Name ?? string.Empty;
+                    b.WithLine($"using var res = await client.HttpResponseMessageAsync<object>(_clientAdapter, {appIdExpr}, {urlArg}, {httpMethodLiteral}, {bodyArg}{cancellationTokenArg});")
                      .WithLine("res.EnsureSuccessStatusCode();")
-                     .WithLine("return await res.Content.ReadAsStringAsync();");
+                     .WithLine($"return await res.Content.ReadAsStringAsync({readAsStringArg});");
+                }
+                else if (isStreamReturn)
+                {
+                    var streamCall = GenerateStreamCall(httpMethodName, bodyParam, appIdExpr, urlArg, patchContentTypeArg, cancellationTokenArg);
+                    if (streamCall is null)
+                    {
+                        b.WithLine($"return await Task.FromException<{returnArg}>(new NotSupportedException(\"HttpReturnType.Stream is not supported for {httpMethodName}.\"));");
+                    }
+                    else
+                    {
+                        b.WithLine(streamCall);
+                        b.WithLine("return res!;");
+                    }
                 }
                 else
                 {
-                    b.WithLine(GenerateCall(httpMethodName, httpMethodValue, returnArg, bodyParam, parameters, appIdExpr, urlArg, patchContentTypeArg));
+                    b.WithLine(GenerateCall(httpMethodName, httpMethodValue, returnArg, bodyParam, parameters, appIdExpr, urlArg, patchContentTypeArg, cancellationTokenArg));
                     b.WithLine("return res!;");
                 }
             });
@@ -177,6 +193,14 @@ namespace FluentHttp.SourceGenerator
                 || string.Equals(httpReturnType, "FluentHttp.Abstractions.HttpReturnType.String", StringComparison.Ordinal)
                 || string.Equals(httpReturnType, "HttpReturnType.String", StringComparison.Ordinal)
                 || string.Equals(httpReturnType, "1", StringComparison.Ordinal);
+        }
+
+        private static bool IsStreamReturn(string httpReturnType)
+        {
+            return string.Equals(httpReturnType, "Stream", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(httpReturnType, "FluentHttp.Abstractions.HttpReturnType.Stream", StringComparison.Ordinal)
+                || string.Equals(httpReturnType, "HttpReturnType.Stream", StringComparison.Ordinal)
+                || string.Equals(httpReturnType, "3", StringComparison.Ordinal);
         }
 
         private static string GetHttpMethodLiteral(string httpMethodName)
@@ -191,54 +215,76 @@ namespace FluentHttp.SourceGenerator
             };
         }
 
-        private static string GenerateCall(string httpMethodName, string httpMethodValue, string returnArg, GeneratedParam bodyParam, List<GeneratedParam> parameters, string appIdExpr, string urlArg, string patchContentTypeArg)
+        private static string GenerateCall(string httpMethodName, string httpMethodValue, string returnArg, GeneratedParam? bodyParam, List<GeneratedParam> parameters, string appIdExpr, string urlArg, string patchContentTypeArg, string cancellationTokenArg)
         {
             return httpMethodName switch
             {
-                "GET" => $"var res = await client.HttpGet<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg});",
+                "GET" => $"var res = await client.HttpGet<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
 
                 "POST" => bodyParam is not null
-                    ? $"var res = await client.HttpPost<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name});"
-                    : $"var res = await client.HttpPost<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null);",
+                    ? $"var res = await client.HttpPost<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
+                    : $"var res = await client.HttpPost<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{cancellationTokenArg});",
 
                 "PUT" => bodyParam is not null
-                    ? $"var res = await client.HttpPut<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name});"
-                    : $"var res = await client.HttpPut<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null);",
+                    ? $"var res = await client.HttpPut<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
+                    : $"var res = await client.HttpPut<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{cancellationTokenArg});",
 
                 "Patch" => bodyParam is not null
-                    ? $"var res = await client.HttpPatch<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{patchContentTypeArg});"
-                    : $"var res = await client.HttpPatch<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{patchContentTypeArg});",
+                    ? $"var res = await client.HttpPatch<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{patchContentTypeArg}{cancellationTokenArg});"
+                    : $"var res = await client.HttpPatch<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{patchContentTypeArg}{cancellationTokenArg});",
 
                 "DELETE" => bodyParam is not null
-                    ? $"var res = await client.HttpDelete<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name});"
-                    : $"var res = await client.HttpDelete<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg});",
+                    ? $"var res = await client.HttpDelete<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
+                    : $"var res = await client.HttpDelete<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
 
-                "HttpFileUpload" or "HttpFileUploadStream" => GenerateUploadCall(returnArg, appIdExpr, urlArg, parameters),
+                "HttpFileUpload" or "HttpFileUploadStream" => GenerateUploadCall(returnArg, appIdExpr, urlArg, parameters, cancellationTokenArg),
 
-                "HttpResponseMessage" => GenerateHttpResponseMessageCall(httpMethodValue, returnArg, bodyParam, appIdExpr, urlArg),
+                "HttpResponseMessage" => GenerateHttpResponseMessageCall(httpMethodValue, returnArg, bodyParam, appIdExpr, urlArg, cancellationTokenArg),
 
-                _ => $"var res = await client.HttpGet<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg});",
+                _ => $"var res = await client.HttpGet<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
             };
         }
 
-        private static string GenerateUploadCall(string returnArg, string appIdExpr, string urlArg, List<GeneratedParam> parameters)
+        private static string? GenerateStreamCall(string httpMethodName, GeneratedParam? bodyParam, string appIdExpr, string urlArg, string patchContentTypeArg, string cancellationTokenArg)
+        {
+            var dataArg = bodyParam?.Name ?? "null";
+            var typeArg = bodyParam?.Type ?? "object";
+            return httpMethodName switch
+            {
+                "GET" => $"var res = await client.HttpGetStream(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
+
+                "POST" => bodyParam is not null
+                    ? $"var res = await client.HttpPostStream<{bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
+                    : $"var res = await client.HttpPostStream<object>(_clientAdapter, {appIdExpr}, {urlArg}, null{cancellationTokenArg});",
+
+                "PUT" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Put, {dataArg}{cancellationTokenArg});",
+
+                "Patch" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Patch, {dataArg}{(string.IsNullOrEmpty(patchContentTypeArg) ? ", contentType: HttpContentType.JsonPatch" : patchContentTypeArg)}{cancellationTokenArg});",
+
+                "DELETE" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Delete, {dataArg}{cancellationTokenArg});",
+
+                _ => null,
+            };
+        }
+
+        private static string GenerateUploadCall(string returnArg, string appIdExpr, string urlArg, List<GeneratedParam> parameters, string cancellationTokenArg)
         {
             var filepathParam = parameters.FirstOrDefault(p => p.IsFilePath);
-            var formDataParam = parameters.FirstOrDefault(p => !p.IsFilePath);
+            var formDataParam = parameters.FirstOrDefault(p => !p.IsFilePath && !p.IsCancellationToken);
             var filepath = filepathParam?.Name ?? "filepath";
             if (formDataParam is not null)
             {
-                return $"var res = await client.UploadFile<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}, {filepath}, {formDataParam.Name});";
+                return $"var res = await client.UploadFile<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}, {filepath}, {formDataParam.Name}{cancellationTokenArg});";
             }
-            return $"var res = await client.UploadFile<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}, {filepath});";
+            return $"var res = await client.UploadFile<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}, {filepath}{cancellationTokenArg});";
         }
 
-        private static string GenerateHttpResponseMessageCall(string httpMethodValue, string returnArg, GeneratedParam bodyParam, string appIdExpr, string urlArg)
+        private static string GenerateHttpResponseMessageCall(string httpMethodValue, string returnArg, GeneratedParam? bodyParam, string appIdExpr, string urlArg, string cancellationTokenArg)
         {
             var type = string.IsNullOrWhiteSpace(bodyParam?.Type) ? returnArg : bodyParam!.Type;
             var obj = bodyParam?.Name ?? "null";
             var method = GetHttpMethodNameText(httpMethodValue);
-            return $"var res = await client.HttpResponseMessageAsync<{type}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.{method}, {obj});";
+            return $"var res = await client.HttpResponseMessageAsync<{type}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.{method}, {obj}{cancellationTokenArg});";
         }
 
         private static string GetReturnTypeArgument(MethodDeclarationSyntax methodSyntax)
@@ -296,9 +342,20 @@ namespace FluentHttp.SourceGenerator
                     Type = parameterSyntax.Type?.ToString().Trim() ?? "object",
                     IsPath = symbol?.GetAttributes().Any(a => a.AttributeClass?.Name == "PathVariableAttribute") ?? false,
                     IsFilePath = symbol?.GetAttributes().Any(a => a.AttributeClass?.Name == "FilePathVariableAttribute") ?? false,
+                    IsCancellationToken = IsCancellationTokenType(symbol?.Type),
                 });
             }
             return result;
+        }
+
+        private static bool IsCancellationTokenType(ITypeSymbol? type)
+        {
+            if (type is null)
+            {
+                return false;
+            }
+            return type.ToDisplayString() == "System.Threading.CancellationToken"
+                || (type.Name == "CancellationToken" && type.ContainingNamespace?.ToDisplayString() == "System.Threading");
         }
 
         private static List<string> GetUsings(INamedTypeSymbol interfaceSymbol)
@@ -387,6 +444,8 @@ namespace FluentHttp.SourceGenerator
             public bool IsPath { get; set; }
 
             public bool IsFilePath { get; set; }
+
+            public bool IsCancellationToken { get; set; }
         }
 
         #endregion

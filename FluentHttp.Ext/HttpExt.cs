@@ -49,6 +49,119 @@ namespace FluentHttp.Ext
                 cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// GET 请求，返回响应流（ResponseHeadersRead），适合大文件、SSE 等流式场景。
+        /// 返回的 Stream 由调用方 Dispose，Dispose 时会同时释放 HttpResponseMessage。
+        /// </summary>
+        public static Task<Stream> HttpGetStream(this HttpClient client, IHttpClientAdapter clientAdapter,
+            string appId, string url, CancellationToken cancellationToken = default)
+        {
+            return client.HttpSendStream<object>(clientAdapter, appId, url, HttpMethod.Get, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// POST 请求，返回响应流（ResponseHeadersRead），适合大文件、SSE 等流式场景。
+        /// 返回的 Stream 由调用方 Dispose，Dispose 时会同时释放 HttpResponseMessage。
+        /// </summary>
+        public static Task<Stream> HttpPostStream<TRequest>(this HttpClient client, IHttpClientAdapter clientAdapter,
+            string appId, string url, TRequest data, CancellationToken cancellationToken = default)
+        {
+            return client.HttpSendStream(clientAdapter, appId, url, HttpMethod.Post, data, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// 发送请求并返回响应流（ResponseHeadersRead）。
+        /// 非成功状态码抛出 HttpRequestException 并释放响应；
+        /// 返回的 Stream 由调用方 Dispose，Dispose 时会同时释放 HttpResponseMessage（连接随之归还连接池）。
+        /// </summary>
+        public static async Task<Stream> HttpSendStream<TRequest>(this HttpClient client, IHttpClientAdapter clientAdapter,
+            string appId, string url, HttpMethod method, TRequest? data = default,
+            HttpContentType contentType = HttpContentType.Json, CancellationToken cancellationToken = default)
+        {
+            var options = clientAdapter.GetJsonSerializerOptions(appId);
+            var response = await client.HttpResponseMessageAsync<TRequest>(
+                clientAdapter,
+                appId,
+                url,
+                method,
+                data: data,
+                contentType: contentType,
+                options: options,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
+
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            return new ResponseStream(stream, response);
+        }
+
+        /// <summary>
+        /// 包装响应流：Dispose 时同时释放 HttpResponseMessage，确保连接归还连接池。
+        /// </summary>
+        private sealed class ResponseStream : Stream
+        {
+            private readonly Stream _inner;
+            private readonly HttpResponseMessage _response;
+
+            public ResponseStream(Stream inner, HttpResponseMessage response)
+            {
+                _inner = inner;
+                _response = response;
+            }
+
+            public override bool CanRead => _inner.CanRead;
+            public override bool CanSeek => _inner.CanSeek;
+            public override bool CanWrite => _inner.CanWrite;
+            public override long Length => _inner.Length;
+
+            public override long Position
+            {
+                get => _inner.Position;
+                set => _inner.Position = value;
+            }
+
+            public override void Flush() => _inner.Flush();
+            public override Task FlushAsync(CancellationToken cancellationToken) => _inner.FlushAsync(cancellationToken);
+            public override int Read(byte[] buffer, int offset, int count) => _inner.Read(buffer, offset, count);
+            public override int Read(Span<byte> buffer) => _inner.Read(buffer);
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                => _inner.ReadAsync(buffer, offset, count, cancellationToken);
+            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+                => _inner.ReadAsync(buffer, cancellationToken);
+            public override long Seek(long offset, SeekOrigin origin) => _inner.Seek(offset, origin);
+            public override void SetLength(long value) => _inner.SetLength(value);
+            public override void Write(byte[] buffer, int offset, int count) => _inner.Write(buffer, offset, count);
+            public override void Write(ReadOnlySpan<byte> buffer) => _inner.Write(buffer);
+            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                => _inner.WriteAsync(buffer, offset, count, cancellationToken);
+            public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+                => _inner.WriteAsync(buffer, cancellationToken);
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _inner.Dispose();
+                    _response.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+
+            public override async ValueTask DisposeAsync()
+            {
+                await _inner.DisposeAsync().ConfigureAwait(false);
+                _response.Dispose();
+                GC.SuppressFinalize(this);
+            }
+        }
+
         public static async Task<TResponse?> HttpPost<TResponse, TRequest>(
             this HttpClient client, IHttpClientAdapter clientAdapter,
             string appId, string url, TRequest data,
