@@ -138,6 +138,9 @@ namespace FluentHttp.SourceGenerator.Test
             Assert.Contains("client.HttpSendStream<object>(_clientAdapter, \"order\", $\"api/v1/order/{id}\", HttpMethod.Delete, null)", code);
             Assert.Contains("Task.FromException<Stream>(new NotSupportedException(\"HttpReturnType.Stream is not supported for HttpFileUpload.\"))", code);
             Assert.Contains("services.TryAdd(ServiceDescriptor.Describe(typeof(FluentHttp.Test.IOrderConsumer), typeof(FluentHttp.Test.OrderConsumer), lifetime))", code);
+            Assert.Contains("namespace TestAssembly", code);
+            Assert.Contains("public static partial class TestAssemblyServiceCollectionExtG", code);
+            Assert.DoesNotContain("namespace FluentHttp.Ext", code);
         }
     }
 }

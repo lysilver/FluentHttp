@@ -41,8 +41,11 @@ namespace FluentHttp.SourceGenerator
                     transform: static (ctx, _) => (INamedTypeSymbol)ctx.TargetSymbol)
                 .Collect();
 
-            context.RegisterSourceOutput(fluentHttpInterfaces, static (context, interfaces) =>
+            IncrementalValueProvider<string?> assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName);
+
+            context.RegisterSourceOutput(fluentHttpInterfaces.Combine(assemblyName), static (context, tuple) =>
             {
+                var (interfaces, assemblyName) = tuple;
                 foreach (var interfaceSymbol in interfaces)
                 {
                     context.AddSource(
@@ -52,9 +55,10 @@ namespace FluentHttp.SourceGenerator
 
                 if (interfaces.Length > 0)
                 {
+                    var extClassName = GenerateServiceCollectionExtClassName(assemblyName);
                     context.AddSource(
-                        "ServiceCollectionExtG.g.cs",
-                        SourceText.From(GenerateServiceCollectionExtSource([.. interfaces]), Encoding.UTF8));
+                        $"{extClassName}.g.cs",
+                        SourceText.From(GenerateServiceCollectionExtSource([.. interfaces], assemblyName), Encoding.UTF8));
                 }
             });
         }
@@ -371,8 +375,9 @@ namespace FluentHttp.SourceGenerator
             return usings;
         }
 
-        private static string GenerateServiceCollectionExtSource(List<INamedTypeSymbol> interfaces)
+        private static string GenerateServiceCollectionExtSource(List<INamedTypeSymbol> interfaces, string? assemblyName)
         {
+            var ns = string.IsNullOrWhiteSpace(assemblyName) ? "FluentHttp.Ext" : assemblyName!;
             var builder = new AdvancedExtensionBuilder();
             builder
                 .WithNullable()
@@ -381,12 +386,11 @@ namespace FluentHttp.SourceGenerator
                 [
                     "System",
                     "System.Linq",
-                    "FluentHttp.Ext",
                     "Microsoft.Extensions.DependencyInjection",
                     "Microsoft.Extensions.DependencyInjection.Extensions",
                 ])
-                .BeginNamespace("FluentHttp.Ext")
-                .BeginClassType("public static partial class ServiceCollectionExtG");
+                .BeginNamespace(ns)
+                .BeginClassType($"public static partial class {GenerateServiceCollectionExtClassName(assemblyName)}");
 
             builder.WithBlock(
                 "public static IServiceCollection AddFluentHttp(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Scoped)",
@@ -400,6 +404,28 @@ namespace FluentHttp.SourceGenerator
                 });
 
             return builder.EndClass().EndNamespace().ToString();
+        }
+
+        private static string GenerateServiceCollectionExtClassName(string? assemblyName)
+        {
+            return "ServiceCollectionExtG";
+            //return string.IsNullOrWhiteSpace(assemblyName)
+            //    ? "ServiceCollectionExtG"
+            //    : SanitizeIdentifier(assemblyName!) + "ServiceCollectionExtG";
+        }
+
+        private static string SanitizeIdentifier(string name)
+        {
+            var result = new StringBuilder();
+            foreach (var c in name)
+            {
+                result.Append(char.IsLetterOrDigit(c) ? c : '_');
+            }
+            if (result.Length > 0 && char.IsDigit(result[0]))
+            {
+                result.Insert(0, "_");
+            }
+            return result.ToString();
         }
 
         private static string GetImplClassName(INamedTypeSymbol interfaceSymbol)
