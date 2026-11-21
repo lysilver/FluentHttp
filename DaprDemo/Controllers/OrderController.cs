@@ -37,7 +37,7 @@ namespace FluentHttp.Demo.Controllers
         [HttpGet("all")]
         public async Task<ActionResult> GetAll()
         {
-            var res = await Task.FromResult(Enumerable.Range(1, 5).Select(index => new Order
+            var res = await Task.FromResult(Enumerable.Range(1, 100).Select(index => new Order
             {
                 Date = DateTime.Now.AddDays(index),
                 Id = Random.Shared.Next(-20, 55),

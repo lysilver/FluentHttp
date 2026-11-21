@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <LatestDevTFM>net10.0</LatestDevTFM>
+    <LatestDevTFM>net11.0</LatestDevTFM>
     <ReleaseTFMs>net8.0;net9.0;net10.0;net11.0</ReleaseTFMs>
     <TestTFMs>net8.0;net9.0;net10.0</TestTFMs>
 	<VersionTFMs>0.1.0</VersionTFMs>

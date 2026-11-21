@@ -24,25 +24,28 @@ builder.Services
             new SocketsHttpHandler
             {
                 AutomaticDecompression =
+                    DecompressionMethods.Zstandard |
+                    DecompressionMethods.Brotli |
                     DecompressionMethods.GZip |
-                    DecompressionMethods.Deflate |
-                    DecompressionMethods.Brotli,
+                    DecompressionMethods.Deflate,
                 AllowAutoRedirect = false,
                 UseCookies = false,
-                // Á¬½Ó³ØÖĞµÄÁ¬½Ó×î³¤ÉúÃüÖÜÆÚ
+                // è¿æ¥æ± ä¸­çš„è¿æ¥æœ€é•¿ç”Ÿå‘½å‘¨æœŸ
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
 
-                // ¿ÕÏĞÁ¬½Ó»ØÊÕÊ±¼ä
+                // ç©ºé—²è¿æ¥å›æ”¶æ—¶é—´
                 PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
                 ConnectTimeout = TimeSpan.FromSeconds(5),
             });
     });
 
+builder.Services.AddResponseCompression();
 builder.Services.AddDefaultFluentHttp();
 //builder.Services.AddFluentHttp(ServiceLifetime.Scoped);
 builder.Services.AddFluentHttpPool();
-// ¸ºÔØ¾ùºâ
+// è´Ÿè½½å‡è¡¡
 var app = builder.Build();
+app.UseResponseCompression();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

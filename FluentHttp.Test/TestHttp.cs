@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -30,7 +32,30 @@ namespace FluentHttp.Test
              .AddJsonFile("appsettings.json");
             IConfiguration configuration = builder.Build();
             services.AddScoped(_ => configuration);
-            services.AddHttpClient();
+            services.AddHttpClient().ConfigureHttpClientDefaults(http =>
+            {
+                http.ConfigureHttpClient(client =>
+                {
+                    client.Timeout = Timeout.InfiniteTimeSpan;
+                });
+                http.ConfigurePrimaryHttpMessageHandler(() =>
+                    new SocketsHttpHandler
+                    {
+                        AutomaticDecompression =
+                            DecompressionMethods.Zstandard |
+                            DecompressionMethods.Brotli |
+                            DecompressionMethods.GZip |
+                            DecompressionMethods.Deflate,
+                        AllowAutoRedirect = false,
+                        UseCookies = false,
+                        // 连接池中的连接最长生命周期
+                        PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+
+                        // 空闲连接回收时间
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+                        ConnectTimeout = TimeSpan.FromSeconds(5),
+                    });
+            });
             services.AddDefaultFluentHttp();
             services.AddFluentHttp();
             var serviceProvider = services.BuildServiceProvider();
@@ -61,21 +86,43 @@ namespace FluentHttp.Test
         public async Task TestGetAll()
         {
             var res = await orderConsumer.GetOrders();
-            Assert.Equal(5, res.Count());
+            Assert.Equal(100, res.Count());
         }
 
         [Fact]
         public async Task TestGetAll_2()
         {
             var res = await orderConsumer.GetAllOrders();
-            Assert.Equal(5, res.Count());
+            Assert.Equal(100, res.Count());
+        }
+
+        [Fact]
+        public async Task TestGetAllCompressed()
+        {
+            // FluentHttp 的 HttpClient 开启自动解压，数据正常可读
+            var res = await orderConsumer.GetOrders();
+            Assert.Equal(100, res.Count());
+
+            // 原始 HttpClient 不开自动解压：验证 /api/v1/order/all 的响应确实有 Content-Encoding（压缩）
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Encoding", "zstd, gzip, br, deflate");
+            using var response = await client.GetAsync("http://localhost:9000/api/v1/order/all",
+                HttpCompletionOption.ResponseHeadersRead, TestContext.Current.CancellationToken);
+            response.EnsureSuccessStatusCode();
+            var encodings = response.Content.Headers.ContentEncoding;
+            Assert.True(encodings.Count > 0, "响应未压缩（缺少 Content-Encoding）");
+            Assert.Contains(encodings, static e =>
+                string.Equals(e, "zstd", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(e, "gzip", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(e, "br", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(e, "deflate", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
         public async Task TestGetOrdersWithToken()
         {
             var res = await orderConsumer.GetOrdersWithToken(TestContext.Current.CancellationToken);
-            Assert.Equal(5, res.Count());
+            Assert.Equal(100, res.Count());
         }
 
         [Fact]
