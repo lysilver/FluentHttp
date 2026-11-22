@@ -3,7 +3,7 @@
     public abstract class AbstractObjectPool<T>
     {
         private readonly T[] factorys;
-        private int[] locks;
+        private readonly int[] locks;
 
         public abstract T CreateInstance();
 

@@ -34,14 +34,6 @@ namespace FluentHttp.SourceGenerator
             get; set;
         }
 
-        /// <summary>
-        /// 认证获取的key
-        /// </summary>
-        public string Auth
-        {
-            get; set;
-        }
-
         public string AppId
         {
             get; set;

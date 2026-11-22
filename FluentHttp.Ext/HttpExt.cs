@@ -32,6 +32,15 @@ namespace FluentHttp.Ext
             return filePath?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) ?? string.Empty;
         }
 
+        private static void AddFormData(MultipartFormDataContent content, Dictionary<string, string>? formData)
+        {
+            if (formData is null) return;
+            foreach (var (key, value) in formData)
+            {
+                content.Add(new StringContent(value), key);
+            }
+        }
+
         public static async Task<TResponse?> HttpGet<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, CancellationToken cancellationToken = default)
         {
@@ -159,6 +168,7 @@ namespace FluentHttp.Ext
                 await _inner.DisposeAsync().ConfigureAwait(false);
                 _response.Dispose();
                 GC.SuppressFinalize(this);
+                await base.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -269,12 +279,11 @@ namespace FluentHttp.Ext
         /// <param name="appId"></param>
         /// <param name="url"></param>
         /// <param name="filePath"></param>
-        /// <param name="auth"></param>
-        /// <param name="fromData">传递参数</param>
+        /// <param name="formData">传递参数</param>
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, string filePath,
-            Dictionary<string, string>? fromData = null, CancellationToken cancellationToken = default)
+            Dictionary<string, string>? formData = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
 
@@ -282,13 +291,7 @@ namespace FluentHttp.Ext
             url = await clientAdapter.GetUrl(appId, url);
 
             using MultipartFormDataContent content = new();
-            if (fromData is not null)
-            {
-                foreach (var (key, value) in fromData)
-                {
-                    content.Add(new StringContent(value), key);
-                }
-            }
+            AddFormData(content, formData);
 
             var fileName = GetUploadFileName(filePath);
             using FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read);
@@ -317,7 +320,7 @@ namespace FluentHttp.Ext
         /// <returns></returns>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, List<string> filePaths,
-            Dictionary<string, string>? fromData = null, CancellationToken cancellationToken = default)
+            Dictionary<string, string>? formData = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             ArgumentNullException.ThrowIfNull(filePaths, nameof(filePaths));
@@ -325,13 +328,7 @@ namespace FluentHttp.Ext
             url = await clientAdapter.GetUrl(appId, url);
 
             using MultipartFormDataContent content = new();
-            if (fromData is not null)
-            {
-                foreach (var (key, value) in fromData)
-                {
-                    content.Add(new StringContent(value), key);
-                }
-            }
+            AddFormData(content, formData);
 
             foreach (var filePath in filePaths)
             {
@@ -352,7 +349,7 @@ namespace FluentHttp.Ext
 
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, List<FileStream> streams,
-            Dictionary<string, string>? fromData = null, CancellationToken cancellationToken = default)
+            Dictionary<string, string>? formData = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             var options = clientAdapter.GetJsonSerializerOptions(appId);
@@ -366,9 +363,9 @@ namespace FluentHttp.Ext
                 content.Add(scontent, "files", stream.Name);
             }
 
-            if (fromData is not null)
+            if (formData is not null)
             {
-                foreach (var (key, value) in fromData)
+                foreach (var (key, value) in formData)
                 {
                     content.Add(new StringContent(value), key);
                 }
@@ -383,9 +380,12 @@ namespace FluentHttp.Ext
             return await res.Content.ReadFromJsonAsync<TResponse>(options, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// 上传单个文件，请求完成后会 Dispose 传入的 stream。
+        /// </summary>
         public static async Task<TResponse?> UploadFile<TResponse>(this HttpClient client,
             IHttpClientAdapter clientAdapter, string appId, string url, FileStream stream,
-            Dictionary<string, string>? fromData = null, CancellationToken cancellationToken = default)
+            Dictionary<string, string>? formData = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             ArgumentNullException.ThrowIfNull(stream, nameof(stream));
@@ -394,14 +394,8 @@ namespace FluentHttp.Ext
 
             using MultipartFormDataContent content = new();
             var scontent = new StreamContent(stream);
-            content.Add(scontent, "file", stream.Name);
-            if (fromData is not null)
-            {
-                foreach (var (key, value) in fromData)
-                {
-                    content.Add(new StringContent(value), key);
-                }
-            }
+            content.Add(scontent, "file", GetUploadFileName(stream.Name));
+            AddFormData(content, formData);
             using var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = content
@@ -429,6 +423,46 @@ namespace FluentHttp.Ext
                 tasks[i] = DownloadChunkAsync(client, clientAdapter, appId, url, data, method, rangeStart, rangeEnd, fileName, options);
             }
             await Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// 以有界并发下载：同时最多 maxConcurrent 个分块任务并发，
+        /// 某个分块下载完成后立即继续下一个，直到所有分块完成。
+        /// </summary>
+        /// <param name="maxConcurrent">同时并发的最大下载任务数，默认 8</param>
+        public static async Task DownloadFileAsync<TRequest>(this HttpClient client,
+            IHttpClientAdapter clientAdapter, string appId, string url, TRequest data, string method,
+            long fileSize, string fileName, int maxConcurrent = 8)
+        {
+            ArgumentNullException.ThrowIfNull(client, nameof(client));
+            ArgumentOutOfRangeException.ThrowIfNegative(fileSize);
+            ArgumentOutOfRangeException.ThrowIfLessThan(maxConcurrent, 1);
+
+            url = await clientAdapter.GetUrl(appId, url).ConfigureAwait(false);
+            var options = clientAdapter.GetJsonSerializerOptions(appId);
+
+            var bufferSize = 1024 * 1024;
+            var chunkCount = (int)Math.Ceiling((double)fileSize / bufferSize);
+            var inFlight = new HashSet<Task>();
+            var index = 0;
+
+            while (index < chunkCount || inFlight.Count > 0)
+            {
+                while (index < chunkCount && inFlight.Count < maxConcurrent)
+                {
+                    var rangeStart = (long)index * bufferSize;
+                    var rangeEnd = Math.Min(rangeStart + bufferSize - 1, fileSize - 1);
+                    inFlight.Add(DownloadChunkAsync(client, clientAdapter, appId, url, data, method, rangeStart, rangeEnd, fileName, options));
+                    index++;
+                }
+                if (inFlight.Count == 0)
+                {
+                    break;
+                }
+                var completed = await Task.WhenAny(inFlight).ConfigureAwait(false);
+                inFlight.Remove(completed);
+                await completed.ConfigureAwait(false);
+            }
         }
 
         private static async Task DownloadChunkAsync<TRequest>(HttpClient httpClient,

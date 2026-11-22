@@ -26,9 +26,9 @@ namespace FluentHttp.Abstractions
             keys.Add(key, func);
         }
 
-        public Func<Dictionary<string, object>> GetHeader(string key)
+        public Func<Dictionary<string, object>>? GetHeader(string key)
         {
-            keys.TryGetValue(key, out Func<Dictionary<string, object>> header);
+            keys.TryGetValue(key, out Func<Dictionary<string, object>>? header);
             return header;
         }
     }

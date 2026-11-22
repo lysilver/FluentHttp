@@ -224,7 +224,7 @@ namespace FluentHttp.Demo.Controllers
         [HttpGet("k6/pool1")]
         public IActionResult K6TestPool1()
         {
-            HttpRequestValues<object> model = null;
+            HttpRequestValues<object>? model = null;
             try
             {
                 model = _pool1.Allocate();
@@ -232,7 +232,7 @@ namespace FluentHttp.Demo.Controllers
             }
             finally
             {
-                _pool1.Free(model);
+                _pool1.Free(model!);
             }
         }
 

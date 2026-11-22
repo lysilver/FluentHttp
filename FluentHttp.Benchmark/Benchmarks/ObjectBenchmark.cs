@@ -43,7 +43,7 @@ namespace FluentHttp.Benchmark.Benchmarks
         {
             for (int i = 0; i < N; i++)
             {
-                HttpModel model = null;
+                HttpModel? model = null;
                 try
                 {
                     model = objectPool2.Allocate();
@@ -80,7 +80,7 @@ namespace FluentHttp.Benchmark.Benchmarks
             for (int i = 0; i < N; i++)
             {
                 int index = -1;
-                HttpModel model = null;
+                HttpModel? model = null;
                 try
                 {
                     model = objectPool3.Get(out index);
