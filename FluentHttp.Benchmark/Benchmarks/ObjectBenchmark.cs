@@ -5,7 +5,7 @@ namespace FluentHttp.Benchmark.Benchmarks
     [MemoryDiagnoser]
     [RPlotExporter]
     [SimpleJob]
-    public class ObjectBenchmark
+    public sealed class ObjectBenchmark
     {
 
         [Params(100, 1000)]

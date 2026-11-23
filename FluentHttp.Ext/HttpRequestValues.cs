@@ -1,6 +1,6 @@
 namespace FluentHttp.Ext
 {
-    public class HttpRequestValues<T>
+    public sealed class HttpRequestValues<T>
     {
         public HttpRequestValues()
         { }
@@ -23,7 +23,7 @@ namespace FluentHttp.Ext
         public string Method { get; set; } = null!;
 
         /// <summary>
-        /// ÑéÖ¤
+        /// ï¿½ï¿½Ö¤
         /// </summary>
         public string? Auth { get; set; }
 

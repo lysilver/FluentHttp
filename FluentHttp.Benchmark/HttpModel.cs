@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Benchmark
 {
-    public class HttpModel
+    public sealed class HttpModel
     {
         public string AppId { get; set; } = null!;
 

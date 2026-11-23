@@ -10,24 +10,38 @@
             {
                 return null;
             }
-            // 排除Weight 为 -1
-            var validServices = services.Where(s => s.Weight > 0).ToList();
-            if (validServices.Count == 0)
+
+            // 排除Weight 为非正值
+            ServiceInfo? lastValid = null;
+            int totalWeight = 0;
+            foreach (var service in services)
+            {
+                if (service.Weight > 0)
+                {
+                    lastValid = service;
+                    totalWeight += service.Weight;
+                }
+            }
+            if (lastValid is null)
             {
                 return null;
             }
-            int  _totalWeight = validServices.Sum(i => i.Weight);
-            long randomValue = Random.Shared.NextInt64(_totalWeight);
+
+            long randomValue = Random.Shared.NextInt64(totalWeight);
             long cumulative = 0;
-            foreach (var item in validServices)
+            foreach (var service in services)
             {
-                cumulative += item.Weight;
+                if (service.Weight <= 0)
+                {
+                    continue;
+                }
+                cumulative += service.Weight;
                 if (randomValue < cumulative)
                 {
-                    return item;
+                    return service;
                 }
             }
-            return validServices.Last();
+            return lastValid;
         }
     }
 }

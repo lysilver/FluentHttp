@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext
 {
-    public class ClusterConfig
+    public sealed class ClusterConfig
     {
         public string AppId { get; set; } = null!;
 

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace FluentHttp.SourceGenerator.Core
 {
-    public class AdvancedExtensionBuilder
+    public sealed class AdvancedExtensionBuilder
     {
         private readonly StringBuilder _builder = new();
         private int _indentLevel = 0;
@@ -348,7 +348,7 @@ namespace FluentHttp.SourceGenerator.Core
             .SyntaxTree.GetText().ToString();
         }
 
-        public class SwitchBuilder
+        public sealed class SwitchBuilder
         {
             private readonly List<string> _cases = [];
             private readonly AdvancedExtensionBuilder _builder;

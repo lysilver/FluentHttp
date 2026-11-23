@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext
 {
-    public class HttpRequestValuesPool<T> : AbstractObjectPool<HttpRequestValues<T>>
+    public sealed class HttpRequestValuesPool<T> : AbstractObjectPool<HttpRequestValues<T>>
     {
         public HttpRequestValuesPool() : base()
         {

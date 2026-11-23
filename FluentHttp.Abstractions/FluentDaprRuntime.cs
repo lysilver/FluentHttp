@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FluentHttp.Abstractions
 {
-    public class FluentDaprRuntime
+    public sealed class FluentDaprRuntime
     {
         private static readonly Lazy<FluentDaprRuntime> lazy =
             new(() => new FluentDaprRuntime());

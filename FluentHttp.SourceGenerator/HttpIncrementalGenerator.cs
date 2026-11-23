@@ -14,7 +14,7 @@ namespace FluentHttp.SourceGenerator
     /// 生成接口实现类，实现类调用 FluentHttp.Ext 中的 HttpExt 扩展方法。
     /// </summary>
     [Generator]
-    public class HttpIncrementalGenerator : IIncrementalGenerator
+    public sealed class HttpIncrementalGenerator : IIncrementalGenerator
     {
         private const string FluentHttpInterfaceAttributeName = "FluentHttp.Abstractions.FluentHttpAttribute";
 

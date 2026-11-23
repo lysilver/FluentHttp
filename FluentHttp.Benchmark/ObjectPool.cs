@@ -2,7 +2,7 @@
 
 namespace FluentHttp.Benchmark
 {
-    internal class ObjectPool<T> where T : class
+    internal sealed class ObjectPool<T> where T : class
     {
         private struct Element
         {

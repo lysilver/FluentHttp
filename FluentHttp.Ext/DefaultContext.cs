@@ -2,7 +2,7 @@
 
 namespace FluentHttp.Ext
 {
-    public class DefaultContext : IContext
+    public sealed class DefaultContext : IContext
     {
 
         public DefaultContext()

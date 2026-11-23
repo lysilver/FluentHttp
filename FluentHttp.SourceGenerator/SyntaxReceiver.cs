@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FluentHttp.SourceGenerator
 {
-    internal class SyntaxReceiver : ISyntaxReceiver
+    internal sealed class SyntaxReceiver : ISyntaxReceiver
     {
         public List<ClassDeclarationSyntax> CandidateClasses { get; } = new List<ClassDeclarationSyntax>();
         public List<InterfaceDeclarationSyntax> InterfaceDeclarationSyntaxes { get; } = new List<InterfaceDeclarationSyntax>();

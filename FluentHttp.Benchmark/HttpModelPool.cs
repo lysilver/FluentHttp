@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Benchmark
 {
-    internal class HttpModelPool : AbstractObjectPool<HttpModel>
+    internal sealed class HttpModelPool : AbstractObjectPool<HttpModel>
     {
         public HttpModelPool() : base()
         {

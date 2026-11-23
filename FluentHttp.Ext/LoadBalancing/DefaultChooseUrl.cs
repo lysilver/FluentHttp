@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext.LoadBalancing
 {
-    public class DefaultChooseUrl : IChooseUrl
+    public sealed class DefaultChooseUrl : IChooseUrl
     {
         private readonly IEnumerable<ILoadBalancingPolicy> _policies;
         private readonly IDictionary<string, ILoadBalancingPolicy> _policiesDict;

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FluentHttp.SourceGenerator
 {
-    public class SourceTextBuild
+    public sealed class SourceTextBuild
     {
         private readonly StringBuilder stringBuilder;
         private readonly string SingleIndent = new string(' ', 4);

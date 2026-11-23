@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace FluentHttp.SourceGenerator
 {
-    public class ClassModel
+    public sealed class ClassModel
     {
         public ClassModel(string name, string nameSpace, EquatableList<InterfaceModel> interfaces)
         {
@@ -18,7 +18,7 @@ namespace FluentHttp.SourceGenerator
         public EquatableList<InterfaceModel> Interfaces { get; set; }
     }
 
-    public class InterfaceModel
+    public sealed class InterfaceModel
     {
         public string FullyQualifiedName { get; set; }
         public EquatableList<string> Properties { get; set; }
@@ -30,7 +30,7 @@ namespace FluentHttp.SourceGenerator
         }
     }
 
-    public class EquatableList<T> : List<T>, IEquatable<EquatableList<T>>
+    public sealed class EquatableList<T> : List<T>, IEquatable<EquatableList<T>>
     {
         public bool Equals(EquatableList<T>? other)
         {

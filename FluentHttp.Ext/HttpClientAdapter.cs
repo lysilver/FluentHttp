@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace FluentHttp.Ext
 {
-    public class HttpClientAdapter : IHttpClientAdapter
+    public sealed class HttpClientAdapter : IHttpClientAdapter
     {
         private readonly IContext _context;
         private readonly IChooseUrl _chooseUrl;

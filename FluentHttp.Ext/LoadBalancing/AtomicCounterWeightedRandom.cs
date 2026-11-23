@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext.LoadBalancing
 {
-    public class AtomicCounterWeightedRandom<T>
+    public sealed class AtomicCounterWeightedRandom<T>
     {
         private readonly List<T> _items = new List<T>();
         private readonly List<double> _weights = new List<double>();

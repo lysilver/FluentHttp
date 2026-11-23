@@ -2,7 +2,7 @@
 
 namespace FluentHttp.Ext
 {
-    public class ObjectPool<T> where T : class
+    public sealed class ObjectPool<T> where T : class
     {
         private struct Element
         {

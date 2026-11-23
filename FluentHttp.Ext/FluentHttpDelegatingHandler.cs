@@ -1,6 +1,6 @@
 ﻿namespace FluentHttp.Ext
 {
-    internal class FluentHttpDelegatingHandler : DelegatingHandler
+    internal sealed class FluentHttpDelegatingHandler : DelegatingHandler
     {
         protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
         {

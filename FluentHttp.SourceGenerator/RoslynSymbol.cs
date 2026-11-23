@@ -8,7 +8,7 @@ namespace FluentHttp.SourceGenerator
 {
     #region RoslynSymbol
 
-    public class RoslynSymbol
+    public sealed class RoslynSymbol
     {
         public string NamespaceName
         {
@@ -89,7 +89,7 @@ namespace FluentHttp.SourceGenerator
 
     #region MemberSymbol
 
-    public class MemberSymbol
+    public sealed class MemberSymbol
     {
         public MemberDeclarationSyntax MemberDeclaration { get; set; }
 
@@ -238,7 +238,7 @@ namespace FluentHttp.SourceGenerator
 
     #region Parameter
 
-    public class Parameter
+    public sealed class Parameter
     {
         /// <summary>
         /// 参数名称
@@ -263,7 +263,7 @@ namespace FluentHttp.SourceGenerator
 
     #endregion Parameter
 
-    public class RoslynSymbolCompare : IEqualityComparer<RoslynSymbol>
+    public sealed class RoslynSymbolCompare : IEqualityComparer<RoslynSymbol>
     {
         public bool Equals(RoslynSymbol x, RoslynSymbol y)
         {
