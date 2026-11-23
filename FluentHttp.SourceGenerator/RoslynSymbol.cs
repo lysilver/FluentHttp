@@ -75,7 +75,7 @@ namespace FluentHttp.SourceGenerator
             url ??= string.Empty;
             if (!string.IsNullOrWhiteSpace(Url) && !url.StartsWith(DaprConst.UrlPrefix))
             {
-                url = Url + DaprConst.UrlPrefix + url;
+                url = string.IsNullOrEmpty(url) ? Url : Url + DaprConst.UrlPrefix + url;
             }
             if (url.StartsWith(DaprConst.UrlPrefix))
             {
