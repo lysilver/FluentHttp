@@ -13,7 +13,6 @@ namespace FluentHttp.Ext
         /// 获取指定服务的 或者指定接口 JSON 序列化配置
         /// </summary>
         /// <param name="appId"></param>
-        /// <param name="request"></param>
         /// <returns></returns>
         JsonSerializerOptions? GetJsonSerializerOptions(string appId);
     }
