@@ -214,7 +214,8 @@ namespace FluentHttp.SourceGenerator
                 "POST" => "HttpMethod.Post",
                 "PUT" => "HttpMethod.Put",
                 "DELETE" => "HttpMethod.Delete",
-                "Patch" => "HttpMethod.Patch",
+                "PATCH" => "HttpMethod.Patch",
+                "HEAD" => "HttpMethod.Head",
                 _ => "HttpMethod.Get",
             };
         }
@@ -233,13 +234,15 @@ namespace FluentHttp.SourceGenerator
                     ? $"var res = await client.HttpPut<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
                     : $"var res = await client.HttpPut<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{cancellationTokenArg});",
 
-                "Patch" => bodyParam is not null
+                "PATCH" => bodyParam is not null
                     ? $"var res = await client.HttpPatch<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{patchContentTypeArg}{cancellationTokenArg});"
                     : $"var res = await client.HttpPatch<{returnArg}, object>(_clientAdapter, {appIdExpr}, {urlArg}, null{patchContentTypeArg}{cancellationTokenArg});",
 
                 "DELETE" => bodyParam is not null
                     ? $"var res = await client.HttpDelete<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
                     : $"var res = await client.HttpDelete<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
+
+                "HEAD" => $"var res = await client.HttpHead<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
 
                 "HttpFileUpload" or "HttpFileUploadStream" => GenerateUploadCall(returnArg, appIdExpr, urlArg, parameters, cancellationTokenArg),
 
@@ -263,7 +266,7 @@ namespace FluentHttp.SourceGenerator
 
                 "PUT" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Put, {dataArg}{cancellationTokenArg});",
 
-                "Patch" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Patch, {dataArg}{(string.IsNullOrEmpty(patchContentTypeArg) ? ", contentType: HttpContentType.JsonPatch" : patchContentTypeArg)}{cancellationTokenArg});",
+                "PATCH" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Patch, {dataArg}{(string.IsNullOrEmpty(patchContentTypeArg) ? ", contentType: HttpContentType.JsonPatch" : patchContentTypeArg)}{cancellationTokenArg});",
 
                 "DELETE" => $"var res = await client.HttpSendStream<{typeArg}>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Delete, {dataArg}{cancellationTokenArg});",
 
@@ -311,7 +314,7 @@ namespace FluentHttp.SourceGenerator
                     "HttpPostAttribute" => "POST",
                     "HttpPutAttribute" => "PUT",
                     "HttpDeleteAttribute" => "DELETE",
-                    "HttpPatchAttribute" => "Patch",
+                    "HttpPatchAttribute" => "PATCH",
                     "HttpResponseMessageAttribute" => "HttpResponseMessage",
                     "HttpFileUploadAttribute" or "HttpFileUploadStreamAttribute" => "HttpFileUpload",
                     _ => "GET",
@@ -329,6 +332,7 @@ namespace FluentHttp.SourceGenerator
                 "2" or "Put" => "Put",
                 "3" or "Delete" => "Delete",
                 "4" or "Patch" => "Patch",
+                "5" or "Head" => "Head",
                 _ => "Get",
             };
         }

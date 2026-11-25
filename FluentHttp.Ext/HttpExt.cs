@@ -59,6 +59,26 @@ namespace FluentHttp.Ext
         }
 
         /// <summary>
+        /// HEAD 请求，返回响应内容（不包含实体体，适合探测资源是否存在、获取响应头等）。
+        /// </summary>
+        public static async Task<TResponse?> HttpHead<TResponse>(this HttpClient client,
+            IHttpClientAdapter clientAdapter, string appId, string url, CancellationToken cancellationToken = default)
+        {
+            var options = clientAdapter.GetJsonSerializerOptions(appId);
+            using var response = await client.HttpResponseMessageAsync<object>(
+               clientAdapter,
+               appId,
+               url,
+               HttpMethod.Head,
+               options: options,
+               cancellationToken: cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<TResponse>(
+                options,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// GET 请求，返回响应流（ResponseHeadersRead），适合大文件、SSE 等流式场景。
         /// 返回的 Stream 由调用方 Dispose，Dispose 时会同时释放 HttpResponseMessage。
         /// </summary>

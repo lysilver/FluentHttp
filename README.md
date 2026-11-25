@@ -80,10 +80,10 @@ public class CustServiceDiscovery : IServiceDiscovery
             _configuration = configuration;
         }
 
-        public Task<Dictionary<string, ClusterConfig>?> GetUrls()
+        public ValueTask<Dictionary<string, ClusterConfig>?> GetUrls()
         {
             var services = _configuration.GetSection(Node).Get<Dictionary<string, ClusterConfig>>();
-            return Task.FromResult(services);
+            return ValueTask.FromResult(services);
         }
     }
 
@@ -244,4 +244,5 @@ sourcelink
 
 #### v0.1.0
 
-- [x] IIncrementalGenerator
+- [x] IContext Task => ValueTask
+- [x] IServiceDiscovery Task => ValueTask
