@@ -15,12 +15,18 @@ namespace FluentHttp.Abstractions
     {
         public static readonly Dictionary<string, string> HttpMethod = new Dictionary<string, string>
                 {
-                    { "HTTP", "FluentHttp.Abstractions.HttpAttribute" },
+                    { "HTTP", "FluentHttp.Abstractions.FluentHttpAttribute" },
                     { "GET", "FluentHttp.Abstractions.HttpGetAttribute" },
                     { "POST", "FluentHttp.Abstractions.HttpPostAttribute" },
                     { "DELETE", "FluentHttp.Abstractions.HttpDeleteAttribute" },
                     { "PUT", "FluentHttp.Abstractions.HttpPutAttribute" },
-                    { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" }
+                    { "PATCH", "FluentHttp.Abstractions.HttpPatchAttribute" },
+                    { "HEAD", "FluentHttp.Abstractions.HttpHeadAttribute" },
+                    { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" },
+                    { "FilePath","FluentHttp.Abstractions.FilePathVariableAttribute" },
+                    { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" },
+                    { "HttpFileUploadStream","FluentHttp.Abstractions.HttpFileUploadStreamAttribute" },
+                    { "HttpResponseMessage","FluentHttp.Abstractions.HttpResponseMessageAttribute" }
                 };
 
         public static readonly string Dapr = "DAPR";

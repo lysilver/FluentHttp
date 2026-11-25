@@ -202,6 +202,16 @@ namespace FluentHttp.Test
         }
 
         [Fact]
+        public async Task TestHeadOrder()
+        {
+            var id = 6;
+            using var response = await orderConsumer.HeadOrder(id);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(id.ToString(), response.Headers.GetValues("X-Order-Id").First());
+            Assert.False(string.IsNullOrEmpty(response.Headers.GetValues("X-Order-Time").First()));
+        }
+
+        [Fact]
         public void TestGetUrl()
         {
             var dict = new Dictionary<string, object>()
@@ -271,7 +281,7 @@ namespace FluentHttp.Test
             List<string> files = await CreateFiles();
             var url = "http://localhost:9000/api/v1/order/multi-file";
             using var httpClient = httpClientFactory.CreateClient();
-            using MultipartFormDataContent content = new MultipartFormDataContent();
+            using MultipartFormDataContent content = new();
             foreach (var filePath in files)
             {
                 var fileName = Path.GetFileName(filePath);
@@ -307,7 +317,7 @@ namespace FluentHttp.Test
 
         private async Task<List<string>> CreateFiles(int count = 10)
         {
-            List<string> files = new();
+            List<string> files = [];
             for (int i = 0; i < count; i++)
             {
                 var file = await CreateFile();

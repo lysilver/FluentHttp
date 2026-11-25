@@ -75,6 +75,9 @@ public interface IOrderConsumer
     [HttpDelete(AppId = "order", Url = "/api/v1/order/{id}")]
     Task<Order> DeleteOrder([PathVariable] int id);
 
+    [HttpHead(AppId = "order", Url = "/api/v1/order/head/{id}")]
+    Task<HttpResponseMessage> HeadOrder([PathVariable] int id);
+
     [HttpFileUpload(AppId = "order", Url = "/api/v1/order/single-file")]
     Task<Order> UploadFileByPath([FilePathVariable] string filepath);
 

@@ -13,6 +13,7 @@ namespace FluentHttp.SourceGenerator
                     { "DELETE", "FluentHttp.Abstractions.HttpDeleteAttribute" },
                     { "PUT", "FluentHttp.Abstractions.HttpPutAttribute" },
                     { "PATCH", "FluentHttp.Abstractions.HttpPatchAttribute" },
+                    { "HEAD", "FluentHttp.Abstractions.HttpHeadAttribute" },
                     { "PATH", "FluentHttp.Abstractions.PathVariableAttribute" },
                     { "FilePath","FluentHttp.Abstractions.FilePathVariableAttribute" },
                     { "HttpFileUpload","FluentHttp.Abstractions.HttpFileUploadAttribute" },
@@ -20,13 +21,12 @@ namespace FluentHttp.SourceGenerator
                     { "HttpResponseMessage","FluentHttp.Abstractions.HttpResponseMessageAttribute" }
                 };
 
-        public static readonly string Dapr = "DAPR";
         public static readonly string Get = "GET";
         public static readonly string Path = "PATH";
         public static readonly string Post = "POST";
         public static readonly string Delete = "DELETE";
 
-        public static readonly string Header = "Header";
+        public static readonly string Head = "HEAD";
 
         public static readonly string AppId = "AppId";
 
@@ -35,8 +35,6 @@ namespace FluentHttp.SourceGenerator
         public static readonly string HttpReturnType = "HttpReturnType";
 
         public static readonly string Name = "Name";
-
-        public static readonly string Auth = "Auth";
 
         public static readonly string ClientName = "ClientName";
 

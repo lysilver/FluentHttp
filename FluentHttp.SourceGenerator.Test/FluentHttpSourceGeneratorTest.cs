@@ -140,5 +140,39 @@ namespace FluentHttp.SourceGenerator.Test
             Assert.Contains("services.TryAdd(ServiceDescriptor.Describe(typeof(FluentHttp.Test.IOrderConsumer), typeof(FluentHttp.Test.OrderConsumer), lifetime))", code);
             Assert.Contains("namespace TestAssembly", code);
         }
+
+        [Fact]
+        public void TestHttpHeadGenerator()
+        {
+            string source = """
+                using FluentHttp.Abstractions;
+                using System.Net.Http;
+                using System.Threading.Tasks;
+
+                namespace FluentHttp.Test;
+
+                [FluentHttp(AppId = "order", Url = "api/v1/order")]
+                public interface IOrderConsumer
+                {
+                    [HttpHead(AppId = "order", Url = "/api/v1/order/head/{id}")]
+                    Task<HttpResponseMessage> HeadOrder([PathVariable] int id);
+
+                    [HttpHead(AppId = "order", Url = "/api/v1/order/head/{id}")]
+                    Task<Order> HeadOrderById([PathVariable] int id);
+                }
+                """;
+            var harness = new SourceGeneratorTestHarness(source)
+                .AddGenerator<HttpIncrementalGenerator>()
+                .AddReferenceType(typeof(FluentHttpAttribute));
+            var result = harness.Run();
+            var code = string.Join(Environment.NewLine, result.GeneratedTrees.Select(static t => t.GetText().ToString()));
+
+            // HttpResponseMessage 返回类型：走 HttpResponseMessageAsync + HttpMethod.Head
+            Assert.Contains("client.HttpResponseMessageAsync<object>(_clientAdapter, \"order\", $\"api/v1/order/head/{id}\", HttpMethod.Head, null)", code);
+            // Order 返回类型：走 HttpHead<Order>
+            Assert.Contains("client.HttpHead<Order>(_clientAdapter, \"order\", $\"api/v1/order/head/{id}\")", code);
+            // 不应把 HttpResponseMessage 返回类型错误地生成为 HttpHead<HttpResponseMessage>
+            Assert.DoesNotContain("HttpHead<HttpResponseMessage>", code);
+        }
     }
 }

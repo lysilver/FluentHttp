@@ -67,9 +67,10 @@ namespace FluentHttp.SourceGenerator
 
         private static string GenerateInterfaceImplSource(INamedTypeSymbol interfaceSymbol)
         {
-            var interfaceAppId = GetNamedArgumentValue(interfaceSymbol, DaprConst.AppId);
-            var interfaceUrl = GetNamedArgumentValue(interfaceSymbol, DaprConst.Url);
-            var interfaceClientName = GetNamedArgumentValue(interfaceSymbol, DaprConst.ClientName);
+            var interfaceAttribute = FindFluentHttpAttribute(interfaceSymbol);
+            var interfaceAppId = GetNamedArgumentValue(interfaceAttribute, DaprConst.AppId);
+            var interfaceUrl = GetNamedArgumentValue(interfaceAttribute, DaprConst.Url);
+            var interfaceClientName = GetNamedArgumentValue(interfaceAttribute, DaprConst.ClientName);
 
             var implClassName = GetImplClassName(interfaceSymbol);
             var namespaceName = interfaceSymbol.ContainingNamespace.ToDisplayString();
@@ -96,7 +97,6 @@ namespace FluentHttp.SourceGenerator
             foreach (var method in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
             {
                 GenerateMethod(builder, interfaceSymbol, method, interfaceAppId, interfaceUrl, interfaceClientName);
-                builder.WithLine();
             }
 
             return builder.EndClass().EndNamespace().ToString();
@@ -115,11 +115,16 @@ namespace FluentHttp.SourceGenerator
                 .FirstOrDefault()
                 ?? throw new InvalidOperationException($"Cannot resolve the declaration of method {method.Name} on {interfaceSymbol.Name}.");
 
-            var methodAppId = GetNamedArgumentValue(method, DaprConst.AppId);
-            var methodUrl = GetNamedArgumentValue(method, DaprConst.Url);
-            var httpReturnType = GetNamedArgumentValue(method, DaprConst.HttpReturnType);
-            var httpMethodValue = GetNamedArgumentValue(method, DaprConst.MemberHttpMethod);
-            var useJsonPatch = GetNamedArgumentValue(method, DaprConst.UseJsonPatch);
+            var methodAttribute = FindHttpMethodAttribute(method);
+            if (methodAttribute is null)
+            {
+                return;
+            }
+            var methodAppId = GetNamedArgumentValue(methodAttribute, DaprConst.AppId);
+            var methodUrl = GetNamedArgumentValue(methodAttribute, DaprConst.Url);
+            var httpReturnType = GetNamedArgumentValue(methodAttribute, DaprConst.HttpReturnType);
+            var httpMethodValue = GetNamedArgumentValue(methodAttribute, DaprConst.MemberHttpMethod);
+            var useJsonPatch = GetNamedArgumentValue(methodAttribute, DaprConst.UseJsonPatch);
             var patchContentTypeArg = string.Equals(useJsonPatch, "False", StringComparison.OrdinalIgnoreCase)
                 ? ", contentType: HttpContentType.Json"
                 : string.Empty;
@@ -134,7 +139,7 @@ namespace FluentHttp.SourceGenerator
                 ? $", cancellationToken: {cancellationTokenParam.Name}"
                 : string.Empty;
             var bodyParam = parameters.FirstOrDefault(p => !p.IsPath && !p.IsCancellationToken);
-            var httpMethodName = GetHttpMethodName(method);
+            var httpMethodName = GetHttpMethodName(methodAttribute);
             var returnArg = GetReturnTypeArgument(methodSyntax);
             var signature = string.Join(", ", parameters.Select(p => $"{p.Type} {p.Name}"));
             var returnType = methodSyntax.ReturnType.ToString().Trim();
@@ -189,6 +194,7 @@ namespace FluentHttp.SourceGenerator
                     b.WithLine("return res!;");
                 }
             });
+            builder.WithLine();
         }
 
         private static bool IsStringReturn(string httpReturnType)
@@ -242,7 +248,9 @@ namespace FluentHttp.SourceGenerator
                     ? $"var res = await client.HttpDelete<{returnArg}, {bodyParam.Type}>(_clientAdapter, {appIdExpr}, {urlArg}, {bodyParam.Name}{cancellationTokenArg});"
                     : $"var res = await client.HttpDelete<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
 
-                "HEAD" => $"var res = await client.HttpHead<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
+                "HEAD" => returnArg == "HttpResponseMessage"
+                    ? $"var res = await client.HttpResponseMessageAsync<object>(_clientAdapter, {appIdExpr}, {urlArg}, HttpMethod.Head, null{cancellationTokenArg});"
+                    : $"var res = await client.HttpHead<{returnArg}>(_clientAdapter, {appIdExpr}, {urlArg}{cancellationTokenArg});",
 
                 "HttpFileUpload" or "HttpFileUploadStream" => GenerateUploadCall(returnArg, appIdExpr, urlArg, parameters, cancellationTokenArg),
 
@@ -303,24 +311,21 @@ namespace FluentHttp.SourceGenerator
             return "object";
         }
 
-        private static string GetHttpMethodName(IMethodSymbol method)
+        private static string GetHttpMethodName(AttributeData? attribute)
         {
-            foreach (var attribute in method.GetAttributes())
+            if (attribute is null)
             {
-                var name = attribute.AttributeClass?.Name;
-                return name switch
-                {
-                    "HttpGetAttribute" => "GET",
-                    "HttpPostAttribute" => "POST",
-                    "HttpPutAttribute" => "PUT",
-                    "HttpDeleteAttribute" => "DELETE",
-                    "HttpPatchAttribute" => "PATCH",
-                    "HttpResponseMessageAttribute" => "HttpResponseMessage",
-                    "HttpFileUploadAttribute" or "HttpFileUploadStreamAttribute" => "HttpFileUpload",
-                    _ => "GET",
-                };
+                return "GET";
             }
-            return "GET";
+            var fullName = attribute.AttributeClass?.ToString();
+            var pair = DaprConst.HttpMethod.FirstOrDefault(c => c.Value == fullName);
+            return pair.Key switch
+            {
+                "GET" or "POST" or "PUT" or "DELETE" or "PATCH" or "HEAD" => pair.Key,
+                "HttpFileUpload" or "HttpFileUploadStream" => "HttpFileUpload",
+                "HttpResponseMessage" => "HttpResponseMessage",
+                _ => "GET",
+            };
         }
 
         private static string GetHttpMethodNameText(string httpMethodValue)
@@ -434,7 +439,7 @@ namespace FluentHttp.SourceGenerator
 
         private static string GetImplClassName(INamedTypeSymbol interfaceSymbol)
         {
-            var name = GetNamedArgumentValue(interfaceSymbol, DaprConst.Name);
+            var name = GetNamedArgumentValue(FindFluentHttpAttribute(interfaceSymbol), DaprConst.Name);
             if (!string.IsNullOrWhiteSpace(name))
             {
                 return name;
@@ -450,19 +455,54 @@ namespace FluentHttp.SourceGenerator
             return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
         }
 
-        private static string GetNamedArgumentValue(ISymbol symbol, string name)
+        private static string GetNamedArgumentValue(AttributeData? attribute, string name)
         {
-            foreach (var attribute in symbol.GetAttributes())
+            if (attribute is null)
             {
-                foreach (var pair in attribute.NamedArguments)
+                return string.Empty;
+            }
+            foreach (var pair in attribute.NamedArguments)
+            {
+                if (pair.Key == name)
                 {
-                    if (pair.Key == name)
-                    {
-                        return pair.Value.Value?.ToString() ?? string.Empty;
-                    }
+                    return pair.Value.Value?.ToString() ?? string.Empty;
                 }
             }
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 识别方法上的内置 HTTP 特性（HttpGet/HttpPost/HttpPut/HttpDelete/HttpPatch/
+        /// HttpResponseMessage/HttpFileUpload/HttpFileUploadStream），只认 FluentHttp 内置类型，
+        /// 自定义特性不会命中。
+        /// </summary>
+        private static AttributeData? FindHttpMethodAttribute(IMethodSymbol method)
+        {
+            var arr = DaprConst.HttpMethod.Values.ToArray();
+            foreach (var attribute in method.GetAttributes())
+            {
+                var fullName = attribute.AttributeClass?.ToString();
+                if (fullName != null && arr.Contains(fullName))
+                {
+                    return attribute;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 识别接口上的内置 FluentHttp 特性，只认内置类型。
+        /// </summary>
+        private static AttributeData? FindFluentHttpAttribute(INamedTypeSymbol interfaceSymbol)
+        {
+            foreach (var attribute in interfaceSymbol.GetAttributes())
+            {
+                if (attribute.AttributeClass?.ToString() == FluentHttpInterfaceAttributeName)
+                {
+                    return attribute;
+                }
+            }
+            return null;
         }
 
         private sealed class GeneratedParam

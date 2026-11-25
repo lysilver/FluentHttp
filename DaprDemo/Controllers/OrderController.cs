@@ -1,4 +1,4 @@
-using DaprDemo;
+ï»¿using DaprDemo;
 using FluentHttp.Ext;
 using Microsoft.AspNetCore.StaticFiles;
 
@@ -31,7 +31,7 @@ namespace FluentHttp.Demo.Controllers
         }
 
         /// <summary>
-        /// »ñÈ¡ËùÓĞ¶©µ¥
+        /// è·å–æ‰€æœ‰è®¢å•
         /// </summary>
         /// <returns></returns>
         [HttpGet("all")]
@@ -48,7 +48,7 @@ namespace FluentHttp.Demo.Controllers
         }
 
         /// <summary>
-        /// ¸ù¾İid»ñÈ¡¶©µ¥
+        /// æ ¹æ®idè·å–è®¢å•
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -71,7 +71,7 @@ namespace FluentHttp.Demo.Controllers
         }
 
         /// <summary>
-        /// ´´½¨¶©µ¥
+        /// åˆ›å»ºè®¢å•
         /// </summary>
         /// <param name="order"></param>
         /// <returns></returns>
@@ -83,7 +83,7 @@ namespace FluentHttp.Demo.Controllers
         }
 
         /// <summary>
-        /// ĞŞ¸Ä¶©µ¥ĞÅÏ¢
+        /// ä¿®æ”¹è®¢å•ä¿¡æ¯
         /// </summary>
         /// <param name="id"></param>
         /// <param name="order"></param>
@@ -97,7 +97,7 @@ namespace FluentHttp.Demo.Controllers
         }
 
         /// <summary>
-        /// ĞŞ¸Ä¶©µ¥ĞÅÏ¢
+        /// ä¿®æ”¹è®¢å•ä¿¡æ¯
         /// </summary>
         /// <param name="id"></param>
         /// <param name="order"></param>
@@ -111,7 +111,7 @@ namespace FluentHttp.Demo.Controllers
         }
 
         /// <summary>
-        /// É¾³ı¶©µ¥
+        /// åˆ é™¤è®¢å•
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -121,13 +121,22 @@ namespace FluentHttp.Demo.Controllers
             _logger.LogInformation("delete-id-{}", id);
             var traceId = HttpContext.Request.Headers["trace_id"].ToString();
             _logger.LogInformation("traceId-{}", traceId);
-            var res = await Task.FromResult(Tuple.Create(id, "É¾³ı³É¹¦"));
+            var res = await Task.FromResult(Tuple.Create(id, "åˆ é™¤æˆåŠŸ"));
             return Ok(new Order
             {
                 Id = id,
-                Code = "É¾³ı³É¹¦",
+                Code = "åˆ é™¤æˆåŠŸ",
                 Date = DateTime.Now,
             });
+        }
+
+
+        [HttpHead("head/{id}")]
+        public IActionResult HeadOrder(int id)
+        {
+            Response.Headers["X-Order-Id"] = id.ToString();
+            Response.Headers["X-Order-Time"] = DateTime.UtcNow.ToString("O");
+            return Ok();
         }
 
         [HttpPost("single-file"), DisableRequestSizeLimit]
@@ -141,7 +150,7 @@ namespace FluentHttp.Demo.Controllers
             }
             if (file == null || file.Length <= 0)
             {
-                return Ok(new Order { Id = 1, Code = "ÎÄ¼şÎª¿Õ" });
+                return Ok(new Order { Id = 1, Code = "æ–‡ä»¶ä¸ºç©º" });
             }
             string fileExt = Path.GetExtension(file.FileName).ToLower();
             string fileName = Path.GetFileNameWithoutExtension(file.FileName);
@@ -161,7 +170,7 @@ namespace FluentHttp.Demo.Controllers
             }
             if (files == null || files.Count <= 0)
             {
-                return Ok(new Order { Id = 1, Code = "ÎÄ¼şÎª¿Õ" });
+                return Ok(new Order { Id = 1, Code = "æ–‡ä»¶ä¸ºç©º" });
             }
             foreach (var file in files)
             {
@@ -193,7 +202,7 @@ namespace FluentHttp.Demo.Controllers
             var fileInfo = new FileInfo(path);
             if (!fileInfo.Exists)
             {
-                throw new FileNotFoundException("ÕÒ²»µ½ÎÄ¼ş");
+                throw new FileNotFoundException("æ‰¾ä¸åˆ°æ–‡ä»¶");
             }
             long fileSize = fileInfo.Length;
             return Ok(fileSize);
